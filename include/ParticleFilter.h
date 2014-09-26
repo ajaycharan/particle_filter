@@ -90,6 +90,8 @@ namespace lab1 {
 
         // Parameters of the measurement model
         float dist_stddev;
+        float z_hit;
+        float z_random;
 
         // TODO: include other parameters
     };
@@ -138,8 +140,8 @@ namespace lab1 {
         // Parameters of the measurement model
         float dist_stddev;
         float valid_range;
-        float dist_var;
-        float gaussian_coeff;
+        float z_hit;
+        float z_random;
 
         // Previous odometry data
         OdometryData prev_odom_data;

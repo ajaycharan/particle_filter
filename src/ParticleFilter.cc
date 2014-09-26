@@ -93,9 +93,9 @@ namespace lab1 {
 
         // Initialize the parameters of the measurement model
         dist_stddev = pf_config.dist_stddev;
-        valid_range = dist_stddev * 2.5f;
-        dist_var = dist_stddev*dist_stddev;
-        gaussian_coeff = 1.0f / sqrt(2.0f*PI*dist_var);
+        valid_range = 2.5f * dist_stddev;
+        z_hit       = pf_config.z_hit;
+        z_random    = pf_config.z_random;
 
         // TODO: Initialize other parameters of the filter
 
@@ -220,8 +220,8 @@ namespace lab1 {
      **************************************************************/
     void ParticleFilter::measurementModel(vector<float>& ldata) {
 
-        // Create a template to store the weights for the particles
-        vector<float> particle_weights(particles_predict.size(), 1.0f);
+        // Store the sum of weights of the particles
+        float weight_sum = 0.0f;
 
         for (unsigned int particle_index = 0; particle_index < particles_predict.size(); ++particle_index){
 
@@ -229,6 +229,7 @@ namespace lab1 {
             float px = particles_predict[particle_index].x;
             float py = particles_predict[particle_index].y;
             float pt = particles_predict[particle_index].theta;
+            particles_predict[particle_index].w = 1.0f;
 
             // Update the weight using the readings from the laser
             for (unsigned int beam_index = 0; beam_index < ldata.size(); ++beam_index) {
@@ -273,23 +274,25 @@ namespace lab1 {
                     }
                     _
                     // Compute the probability of the current beam
-                    float norm_dist = sqrt(shortest_dist_square) / dist_stddev;
-                    float prob_dist = 1.0f - 2.0f*(1.0f-(float)normal_cdf((double)sqrt(shortest_dist_square)));
+                    float norm_dist = sqrt(shortest_dist_square)*wean.resolution / dist_stddev;
+                    float prob_dist = z_hit*((float)normal_cdf(norm_dist+1)-(float)normal_cdf(norm_dist-1)) + z_random/laser_max_reading;
 
                     // Accumulate the probability
-                    particle_weights[particle_index] *= prob_dist;
+                    particles_predict[particle_index].w *= prob_dist;
 
                 } else {
                     continue;
                 }
             }
 
-            // Set the weight for the particle
-            // Note that the weight has not been normalized yet
-            particles_predict[particle_index] = acc_weight;
+            // Accumulate the weight for later normalization
+            weight_sum += particles_predict[particle_index].w;
         }
 
         // Normalize the weight of all the particles
+        for (unsigned int i = 0; i < particles_predict.size(); ++i) {
+            particles_predict[i].w /= weight_sum;
+        }
 
         return;
     }
