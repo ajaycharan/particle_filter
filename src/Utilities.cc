@@ -129,22 +129,22 @@ namespace lab1 {
                 laser_data.push_back(LaserData());
                 unsigned int new_laser_data_idx = laser_data.size()-1;
 
-                fin >> laser_data[new_laser_data_idx].x;
-                fin >> laser_data[new_laser_data_idx].y;
-                fin >> laser_data[new_laser_data_idx].theta;
-                fin >> laser_data[new_laser_data_idx].xl;
-                fin >> laser_data[new_laser_data_idx].yl;
-                fin >> laser_data[new_laser_data_idx].thetal;
+                fin >> laser_data[new_laser_data_idx].odom_robot.x;
+                fin >> laser_data[new_laser_data_idx].odom_robot.y;
+                fin >> laser_data[new_laser_data_idx].odom_robot.theta;
+                fin >> laser_data[new_laser_data_idx].odom_laser.x;
+                fin >> laser_data[new_laser_data_idx].odom_laser.y;
+                fin >> laser_data[new_laser_data_idx].odom_laser.theta;
 
                 laser_data[new_laser_data_idx].readings.resize(180);
                 for (int i = 0; i < 180; ++i){
                     fin >> laser_data[new_laser_data_idx].readings[i];
                 }
 
-                fin >> laser_data[new_laser_data_idx].ts;
-#ifdef UTILITIES_DEBUG
-                cout << "New laser data at " << laser_data[new_laser_data_idx].ts << endl;
-#endif
+                double ts;
+                fin >> ts;
+                laser_data[new_laser_data_idx].odom_robot.ts = ts;
+                laser_data[new_laser_data_idx].odom_laser.ts = ts;
 
             } else if (data_type.compare("O") == 0) {
                 // Push a new odometry data into the vector
@@ -156,9 +156,6 @@ namespace lab1 {
                 fin >> odom_data[new_odom_data_idx].theta;
                 fin >> odom_data[new_odom_data_idx].ts;
 
-#ifdef UTILITIES_DEBUG
-                cout << "New odom data at " << odom_data[new_odom_data_idx].ts << endl;
-#endif
             } else {
                 cerr << "Error: Unrecognized measurement type: " << data_type << endl;
                 return;

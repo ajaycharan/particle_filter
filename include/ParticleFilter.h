@@ -29,13 +29,9 @@ namespace lab1 {
 
     struct LaserData {
         // Coordinates of the robot in standard odometry frame
-        float x;
-        float y;
-        float theta;
+        OdometryData odom_robot;
         // Coordinates of the laser sensor in the standard odometry frame
-        float xl;
-        float yl;
-        float thetal;
+        OdometryData odom_laser;
         // Laser readings in the couterclockwise order
         std::vector<float> readings;
         // Time stamp
