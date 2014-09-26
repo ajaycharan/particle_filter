@@ -272,7 +272,7 @@ namespace lab1 {
 
                         }
                     }
-                    _
+
                     // Compute the probability of the current beam
                     float norm_dist = sqrt(shortest_dist_square)*wean.resolution / dist_stddev;
                     float prob_dist = z_hit*((float)normal_cdf(norm_dist+1)-(float)normal_cdf(norm_dist-1)) + z_random/laser_max_reading;
@@ -296,6 +296,24 @@ namespace lab1 {
 
         return;
     }
+
+
+    /**************************************************************
+     * @brief: Resample process of the particle fitler
+     *
+     *      The function implements a low variance resampler to
+     *      reduce the sampling error of the particle filter
+     *
+     * @param  Nil
+     * @return Nil
+     **************************************************************/
+    void ParticleFilter::lowVarResample() {
+
+
+        return;
+    }
+
+
 }
 
 
