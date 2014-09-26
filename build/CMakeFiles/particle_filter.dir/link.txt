@@ -1,0 +1,2 @@
+/usr/bin/ar cr libparticle_filter.a  CMakeFiles/particle_filter.dir/src/ParticleFilter.cc.o
+/usr/bin/ranlib libparticle_filter.a
