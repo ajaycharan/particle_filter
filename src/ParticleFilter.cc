@@ -218,7 +218,7 @@ namespace lab1 {
      * @param  odom_data: readings from the odometry
      * @return Nil
      **************************************************************/
-    void ParticleFilter::measurementModel(std::vector<float>& ldata) {
+    void ParticleFilter::measurementModel(vector<float>& ldata) {
 
         for (unsigned int particle_index = 0; particle_index < particles_predict.size(); ++particle_index){
 

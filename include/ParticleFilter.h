@@ -144,12 +144,14 @@ namespace lab1 {
         // Previous odometry data
         OdometryData prev_odom_data;
 
+        // Compute the cdf of normal distribution
+        double normal_cdf(double d);
         // Categorize the map
         void mapCategorize();
         // Create new particles based on the control input (odom data)
         void motionModel(OdometryData& odom_data);
         // Compute the weight for each new sample
-        void measurementModel(LaserData& laser_data);
+        void measurementModel(std::vector<float>& ldata);
         // Create new samples according to the weights
         void lowVarResample();
 

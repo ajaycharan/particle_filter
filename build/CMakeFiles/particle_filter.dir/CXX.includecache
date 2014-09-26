@@ -16,7 +16,7 @@ random
 opencv2/opencv.hpp
 -
 
-/home/ke/cplusplus_ws/16831_code/lab1/src/ParticleFilter.cc
+/home/ke/cplusplus_ws/particle_filter/src/ParticleFilter.cc
 iostream
 -
 vector
@@ -32,5 +32,5 @@ cmath
 opencv2/opencv.hpp
 -
 ParticleFilter.h
-/home/ke/cplusplus_ws/16831_code/lab1/src/ParticleFilter.h
+/home/ke/cplusplus_ws/particle_filter/src/ParticleFilter.h
 
