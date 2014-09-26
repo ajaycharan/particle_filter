@@ -26,8 +26,8 @@ using namespace lab1;
 int main (int argc, char *argv[]) {
 
     // Path of the files
-    string map_file_path = "/home/ke/cplusplus_ws/16831_code/lab1/data/map/wean.dat";
-    string log_file_path = "/home/ke/cplusplus_ws/16831_code/lab1/data/log/robotdata1.log";
+    string map_file_path = "/home/ke/cplusplus_ws/particle_filter/data/map/wean.dat";
+    string log_file_path = "/home/ke/cplusplus_ws/particle_filter/data/log/robotdata1.log";
 
     // Read the map
     WorldMap my_map;

@@ -110,7 +110,10 @@ namespace lab1 {
         ~ParticleFilter() {}
 
         // Interface of the particle filter
-        void estimation(OdometryData& odom_data, LaserData& laser_data, WorldMap& wean);
+        // Note that the interface is overloaded to handle the case where only
+        // the input is available
+        void estimation(OdometryData& odom_data);
+        void estimation(OdometryData& odom_data, LaserData& laser_data);
 
     private:
 

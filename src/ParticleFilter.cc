@@ -340,6 +340,42 @@ namespace lab1 {
     }
 
 
+    /**************************************************************
+     * @brief: Interface of the particle filter
+     *
+     *      This interface takes the data from the odometry only,
+     *      and use it as input, which handles the case that sensor
+     *      readings from laser is not available.
+     *
+     * @param odom_data: readings from the odometry sensors
+     * @return Nil
+     **************************************************************/
+    void ParticleFilter::estimation(OdometryData& odom_data){
+
+        // Since there is no measurement data,
+        // only process model is performed.
+        motionModel(odom_data);
+        return;
+    }
+
+
+    /**************************************************************
+     * @brief: Interface of the particle filter
+     *
+     *      This interface takes both the odometry and laser data.
+     *      Note that since the odometry data has been interpolated
+     *      in the log file, the odometry data is always available
+     *      when there is laser data.
+     *
+     * @param odom_data : readings from the odometry sensors
+     * @param laser_data: readings from the laser
+     * @return Nil
+     **************************************************************/
+    void estimation(OdometryData& odom_data, LaserData& laser_data) {
+
+        return;
+    }
+
 }
 
 
