@@ -309,6 +309,32 @@ namespace lab1 {
      **************************************************************/
     void ParticleFilter::lowVarResample() {
 
+        particles_update.clear();
+
+        unsigned int particle_size = particles_predict.size();
+        float step_size = 1.0f / (float)particle_size;
+
+        // Generate a random number as the starting point
+        unsigned int rand_seed = chrono::system_clock::now().time_since_epoch().count();
+        default_random_engine generator(rand_seed);
+        uniform_real_distribution<float> randu_r(0.0f, step_size);
+        double r = randu_r(generator);
+
+        float c = particles_predict[0].w;
+        unsigned int particle_to_sample = 0;
+
+        for (unsigned int i = 0; i < particle_size; ++i) {
+
+            float U = r + (i-1)*step_size;
+            while (U > c) {
+                ++particle_to_sample;
+                c += particles_predict[particle_to_sample].w;
+            }
+
+            // Add the sample to represent the belief after resampling
+            particles_update.push_back(particles_predict[particle_to_sample]);
+
+        }
 
         return;
     }
