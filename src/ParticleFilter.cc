@@ -220,10 +220,12 @@ namespace lab1 {
      **************************************************************/
     void ParticleFilter::measurementModel(vector<float>& ldata) {
 
+        // Create a template to store the weights for the particles
+        vector<float> particle_weights(particles_predict.size(), 1.0f);
+
         for (unsigned int particle_index = 0; particle_index < particles_predict.size(); ++particle_index){
 
             // Set the intial weight of the particle to 1;
-            float acc_weight = 1.0f;
             float px = particles_predict[particle_index].x;
             float py = particles_predict[particle_index].y;
             float pt = particles_predict[particle_index].theta;
@@ -244,9 +246,9 @@ namespace lab1 {
                     float right_grid = (obstacle_x + valid_range) / (float)wean.resolution;
 
                     int upper = (upper_grid > 0.0f) ? (int)floor(upper_grid) : 0;
-                    int lower = (lower_grid < wean.map_size_y/wean.resolution-1) ? (int)ceil(lower_grid) : wean.map_size_y/wean.resolution-1;
+                    int lower = (lower_grid < wean.map_size_y/wean.resolution-1.0f) ? (int)ceil(lower_grid) : wean.map_size_y/wean.resolution-1;
                     int left  = (left_grid > 0.0f)  ? (int)floor(left_grid) : 0;
-                    int right = (right_grid < wean.map_size_x/wean.resolution-1) ? (int)ceil(right_grid) : wean.map_size_x/wean.resolution-1;
+                    int right = (right_grid < wean.map_size_x/wean.resolution-1.0f) ? (int)ceil(right_grid) : wean.map_size_x/wean.resolution-1;
 
                     int closest_x, closest_y;
                     float shortest_dist_square = 1e10;
@@ -269,15 +271,25 @@ namespace lab1 {
 
                         }
                     }
+                    _
+                    // Compute the probability of the current beam
+                    float norm_dist = sqrt(shortest_dist_square) / dist_stddev;
+                    float prob_dist = 1.0f - 2.0f*(1.0f-(float)normal_cdf((double)sqrt(shortest_dist_square)));
 
-                    // Compute the probability
-                    double prob_dist = normal_cdf((double)sqrt(shortest_dist_square));
+                    // Accumulate the probability
+                    particle_weights[particle_index] *= prob_dist;
 
                 } else {
                     continue;
                 }
             }
+
+            // Set the weight for the particle
+            // Note that the weight has not been normalized yet
+            particles_predict[particle_index] = acc_weight;
         }
+
+        // Normalize the weight of all the particles
 
         return;
     }
