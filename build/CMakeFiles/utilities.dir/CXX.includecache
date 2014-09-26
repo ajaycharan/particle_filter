@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/RobotSimulator.h
+iostream
+-
+string
+-
+vector
+-
+opencv2/opencv.hpp
+-
+
+../include/Utilities.h
+iostream
+-
+string
+-
+vector
+-
+RobotSimulator.h
+../include/RobotSimulator.h
+
+/home/ke/cplusplus_ws/16831_code/lab1/src/Utilities.cc
+iostream
+-
+fstream
+-
+opencv2/opencv.hpp
+-
+Utilities.h
+/home/ke/cplusplus_ws/16831_code/lab1/src/Utilities.h
+
