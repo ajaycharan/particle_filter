@@ -350,7 +350,7 @@ namespace lab1 {
      * @param odom_data: readings from the odometry sensors
      * @return Nil
      **************************************************************/
-    void ParticleFilter::estimation(OdometryData& odom_data){
+    void ParticleFilter::estimate(OdometryData& odom_data){
 
         // Since there is no measurement data,
         // only process model is performed.
@@ -367,12 +367,18 @@ namespace lab1 {
      *      in the log file, the odometry data is always available
      *      when there is laser data.
      *
-     * @param odom_data : readings from the odometry sensors
-     * @param laser_data: readings from the laser
+     * @param laser_data: odometry data and readings from the laser
      * @return Nil
      **************************************************************/
-    void estimation(OdometryData& odom_data, LaserData& laser_data) {
+    void ParticleFilter::estimate(LaserData& laser_data) {
 
+        // A full pipeline of the particle is implemented
+        motionModel(laser_data.odom_robot);
+        measurementModel(laser_data.readings);
+        lowVarResample();
+
+        particles_old.clear();
+        particles_old = particles_update;
         return;
     }
 

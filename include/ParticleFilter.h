@@ -104,6 +104,7 @@ namespace lab1 {
         WorldMap wean;
 
         // Constructor
+        ParticleFilter() {}
         ParticleFilter(ParticleFilterConfig& pf_config);
 
         // Destructor
@@ -112,8 +113,8 @@ namespace lab1 {
         // Interface of the particle filter
         // Note that the interface is overloaded to handle the case where only
         // the input is available
-        void estimation(OdometryData& odom_data);
-        void estimation(OdometryData& odom_data, LaserData& laser_data);
+        void estimate(OdometryData& odom_data);
+        void estimate(LaserData& laser_data);
 
     private:
 

@@ -141,10 +141,9 @@ namespace lab1 {
                     fin >> laser_data[new_laser_data_idx].readings[i];
                 }
 
-                double ts;
-                fin >> ts;
-                laser_data[new_laser_data_idx].odom_robot.ts = ts;
-                laser_data[new_laser_data_idx].odom_laser.ts = ts;
+                fin >> laser_data[new_laser_data_idx].ts;
+                laser_data[new_laser_data_idx].odom_robot.ts = laser_data[new_laser_data_idx].ts;
+                laser_data[new_laser_data_idx].odom_laser.ts = laser_data[new_laser_data_idx].ts;
 
             } else if (data_type.compare("O") == 0) {
                 // Push a new odometry data into the vector

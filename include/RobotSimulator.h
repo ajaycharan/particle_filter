@@ -31,10 +31,19 @@ namespace lab1 {
         float thetal;
     };
 
-    class simulator {
+    struct SimulatorConfig {
+        // file path of data
+        std::string map_path;
+        std::string data_path;
+
+        // Configurations for the particle filter
+        ParticleFilterConfig pf_config;
+
+    };
+
+    class Simulator {
     public:
         //  Particle filter
-        ParticleFilterConfig pf_config;
         ParticleFilter pf_estimator;
 
         // Robot in the world
@@ -42,6 +51,7 @@ namespace lab1 {
 
         // Map of the world
         WorldMap wean;
+        cv::Mat wean_visual;
 
         // Time
         double sim_time;
@@ -50,15 +60,20 @@ namespace lab1 {
         std::vector<OdometryData> odom_data;
         std::vector<LaserData> laser_data;
 
+
     private:
+        // The index of the next odometry or laser data
+        unsigned int next_odom_data;
+        unsigned int next_laser_data;
 
     public:
-        simulator();
-        ~simulator() {}
+        Simulator() {}
+        Simulator(SimulatorConfig& sim_config);
+        ~Simulator() {}
 
         // Interface of the simulator
         // Send sensor data to the particle filter based on the simulation time
-        oneStepForward();
+        bool oneStepForward();
 
     private:
 

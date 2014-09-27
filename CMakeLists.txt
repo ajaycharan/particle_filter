@@ -32,12 +32,22 @@ target_link_libraries(particle_filter
   ${OpenCV_LIBS}
 )
 
+add_library(simulator
+    src/RobotSimulator.cc
+)
+target_link_libraries(simulator
+    utilities
+    particle_filter
+    ${OpenCV_LIBS}
+)
+
 add_executable(test
   src/test.cc
 )
 target_link_libraries(test
   utilities
   particle_filter
+  simulator
   ${OpenCV_LIBS}
 )
 
