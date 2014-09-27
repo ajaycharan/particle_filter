@@ -62,8 +62,6 @@ namespace lab1 {
     };
 
     struct ParticleFilterConfig {
-        // Map of the world
-        WorldMap wean;
 
         // Number of the particles
         int max_particle_size;
@@ -110,6 +108,9 @@ namespace lab1 {
         // Destructor
         ~ParticleFilter() {}
 
+        // Set the map
+        void setMap(WorldMap& new_map);
+
         // Interface of the particle filter
         // Note that the interface is overloaded to handle the case where only
         // the input is available
@@ -145,6 +146,7 @@ namespace lab1 {
 
         // Previous odometry data
         OdometryData prev_odom_data;
+        bool first_odom_data;
 
         // Compute the cdf of normal distribution
         double normal_cdf(double d);

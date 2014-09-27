@@ -25,6 +25,7 @@ namespace lab1 {
         wean.env_map.convertTo(wean_visual, -1, 0.5f, 0.5f);
         cvtColor(wean_visual, wean_visual, CV_GRAY2RGB);
         wean_visual.copyTo(wean_drawing_copy);
+        pf_estimator.setMap(wean);
 
         // Read the sensor data
         Utilities::ReadDataLog(sim_config.log_path, odom_data, laser_data);

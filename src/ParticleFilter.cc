@@ -44,15 +44,6 @@ namespace lab1 {
      **************************************************************/
     ParticleFilter::ParticleFilter(ParticleFilterConfig& pf_config) {
 
-        // Initialize the map
-        wean.map_size_x = pf_config.wean.map_size_x;
-        wean.map_size_y = pf_config.wean.map_size_y;
-        wean.resolution = pf_config.wean.resolution;
-        wean.auto_shifted_x = pf_config.wean.auto_shifted_x;
-        wean.auto_shifted_y = pf_config.wean.auto_shifted_y;
-        pf_config.wean.env_map.copyTo(wean.env_map);
-        mapCategorize();
-
         // Set the maximum number of particles
         max_particle_size = pf_config.max_particle_size;
 
@@ -97,7 +88,33 @@ namespace lab1 {
         z_hit       = pf_config.z_hit;
         z_random    = pf_config.z_random;
 
+
+        first_odom_data = true;
+
         // TODO: Initialize other parameters of the filter
+
+        return;
+    }
+
+    /**************************************************************
+     * @brief: Set the map of the particle filter
+     *
+     *
+     * @param new_map: a new map
+     * @return
+     **************************************************************/
+    void ParticleFilter::setMap(WorldMap& new_map) {
+
+        // Initialize the map
+        wean.map_size_x = new_map.map_size_x;
+        wean.map_size_y = new_map.map_size_y;
+        wean.resolution = new_map.resolution;
+        wean.auto_shifted_x = new_map.auto_shifted_x;
+        wean.auto_shifted_y = new_map.auto_shifted_y;
+        new_map.env_map.copyTo(wean.env_map);
+
+        // Categorize the grids in the map
+        mapCategorize();
 
         return;
     }
@@ -204,6 +221,8 @@ namespace lab1 {
             }
 
         }
+        // Update the previous data
+        prev_odom_data = odom_data;
 
         return;
     }
@@ -352,6 +371,12 @@ namespace lab1 {
      **************************************************************/
     void ParticleFilter::estimate(OdometryData& odom_data){
 
+        if (first_odom_data) {
+            first_odom_data = false;
+            prev_odom_data = odom_data;
+            return;
+        }
+
         // Since there is no measurement data,
         // only process model is performed.
         motionModel(odom_data);
@@ -371,6 +396,12 @@ namespace lab1 {
      * @return Nil
      **************************************************************/
     void ParticleFilter::estimate(LaserData& laser_data) {
+
+        if (first_odom_data) {
+            first_odom_data = false;
+            prev_odom_data = laser_data.odom_robot;
+            return;
+        }
 
         // A full pipeline of the particle is implemented
         motionModel(laser_data.odom_robot);
