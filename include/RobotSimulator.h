@@ -34,7 +34,7 @@ namespace lab1 {
     struct SimulatorConfig {
         // file path of data
         std::string map_path;
-        std::string data_path;
+        std::string log_path;
 
         // Configurations for the particle filter
         ParticleFilterConfig pf_config;
@@ -52,6 +52,7 @@ namespace lab1 {
         // Map of the world
         WorldMap wean;
         cv::Mat wean_visual;
+        cv::Mat wean_drawing_copy;
 
         // Time
         double sim_time;
@@ -74,6 +75,10 @@ namespace lab1 {
         // Interface of the simulator
         // Send sensor data to the particle filter based on the simulation time
         bool oneStepForward();
+
+        // Draw the particles on the image
+        // two types of drawing: w/o orientations
+        void drawParticles(std::string& drawing_mode);
 
     private:
 

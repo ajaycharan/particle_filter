@@ -234,7 +234,7 @@ namespace lab1 {
             // Update the weight using the readings from the laser
             for (unsigned int beam_index = 0; beam_index < ldata.size(); ++beam_index) {
 
-                if (ldata[beam_index] != laser_max_reading){
+                if (ldata[beam_index] < laser_max_reading){
 
                     // Project the laser reading into the map
                     float obstacle_x = px + laser_x*cos(pt) - laser_y*sin(pt) + ldata[beam_index]*cos(pt+beam_index+0.5f);
