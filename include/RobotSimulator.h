@@ -78,7 +78,7 @@ namespace lab1 {
 
         // Draw the particles on the image
         // two types of drawing: w/o orientations
-        void drawParticles(std::string& drawing_mode);
+        void drawParticles(const std::string& drawing_mode = "loc_dir");
 
     private:
 

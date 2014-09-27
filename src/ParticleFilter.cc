@@ -58,21 +58,6 @@ namespace lab1 {
         particles_predict.resize(0);
         particles_update.resize(0);
 
-        // Create particles that uniformly distributed in the map
-        unsigned int rand_seed = chrono::system_clock::now().time_since_epoch().count();
-        default_random_engine generator(rand_seed);
-        uniform_real_distribution<float> randu_x(0.0f, wean.map_size_x-1);
-        uniform_real_distribution<float> randu_y(0.0f, wean.map_size_y-1);
-        uniform_real_distribution<float> randu_theta(-PI, PI);
-
-        for (int i = 0; i < max_particle_size; ++i) {
-            particles_old.push_back(Particle());
-            particles_old[particles_old.size()-1].x = randu_x(generator);
-            particles_old[particles_old.size()-1].y = randu_y(generator);
-            particles_old[particles_old.size()-1].theta = randu_theta(generator);
-            particles_old[particles_old.size()-1].w = 0.0f;
-        }
-
         // Initialize the parameters of the motion model
         rot1_stddev  = pf_config.rot1_stddev;
         rot2_stddev  = pf_config.rot2_stddev;
@@ -113,8 +98,42 @@ namespace lab1 {
         wean.auto_shifted_y = new_map.auto_shifted_y;
         new_map.env_map.copyTo(wean.env_map);
 
+#ifdef PF_DEBUG
+            cout << "Map size: " << wean.map_size_x << " " << wean.map_size_y << endl;
+            cout << "Resolution: " << wean.resolution << endl;
+#endif
         // Categorize the grids in the map
         mapCategorize();
+
+        return;
+    }
+
+    /**************************************************************
+     * @brief: Generate initial particles
+     *
+     *      The intial particles distributed uniformly on the map.
+     *      Note that this function can only be called after
+     *      function setMap is called.
+     *
+     * @param
+     * @return
+     **************************************************************/
+    void ParticleFilter::generateInitParticles() {
+
+        // Create particles that uniformly distributed in the map
+        unsigned int rand_seed = chrono::system_clock::now().time_since_epoch().count();
+        default_random_engine generator(rand_seed);
+        uniform_real_distribution<float> randu_x(0.0f, wean.map_size_x-1);
+        uniform_real_distribution<float> randu_y(0.0f, wean.map_size_y-1);
+        uniform_real_distribution<float> randu_theta(-PI, PI);
+
+        for (int i = 0; i < max_particle_size; ++i) {
+            particles_old.push_back(Particle());
+            particles_old[particles_old.size()-1].x = randu_x(generator);
+            particles_old[particles_old.size()-1].y = randu_y(generator);
+            particles_old[particles_old.size()-1].theta = randu_theta(generator);
+            particles_old[particles_old.size()-1].w = 0.0f;
+        }
 
         return;
     }
@@ -380,6 +399,9 @@ namespace lab1 {
         // Since there is no measurement data,
         // only process model is performed.
         motionModel(odom_data);
+
+        particles_old.clear();
+        particles_old = particles_predict;
         return;
     }
 
@@ -405,11 +427,11 @@ namespace lab1 {
 
         // A full pipeline of the particle is implemented
         motionModel(laser_data.odom_robot);
-        measurementModel(laser_data.readings);
-        lowVarResample();
+        //measurementModel(laser_data.readings);
+        //lowVarResample();
 
         particles_old.clear();
-        particles_old = particles_update;
+        particles_old = particles_predict;
         return;
     }
 

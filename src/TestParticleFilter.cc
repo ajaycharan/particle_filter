@@ -11,6 +11,7 @@
 
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include <opencv2/opencv.hpp>
@@ -26,17 +27,17 @@ using namespace lab1;
 
 int main (int argc, char *argv[]) {
 
+    namedWindow("Particle Filter");
 
     /*************************************
      *      Create a simulator
      ************************************/
-    namedWindow("Map");
     SimulatorConfig sim_config;
     sim_config.map_path = "/home/ke/cplusplus_ws/particle_filter/data/map/wean.dat";
     sim_config.log_path = "/home/ke/cplusplus_ws/particle_filter/data/log/robotdata1.log";
 
     // Particle filter configurations
-    sim_config.pf_config.max_particle_size = 100;
+    sim_config.pf_config.max_particle_size = 10;
     sim_config.pf_config.laser_x           = 25.0f;
     sim_config.pf_config.laser_y           = 0.0f;
     sim_config.pf_config.laser_theta       = 0.0f;
@@ -52,9 +53,26 @@ int main (int argc, char *argv[]) {
     sim_config.pf_config.z_hit             = 0.8f;
     sim_config.pf_config.z_random          = 0.2f;
 
+
+    /**********************************
+     *      Start the simulator
+     *********************************/
     Simulator pf_sim(sim_config);
+    bool continue_flag = true;
+    printf("Sim time: %.4f\n", 0.0f);
 
+    while (continue_flag) {
+        continue_flag = pf_sim.oneStepForward();
 
+        pf_sim.drawParticles("loc_dir");
+        imshow("Particle Filter", pf_sim.wean_drawing_copy);
+        waitKey(0);
+
+        printf("Sim time: %.4f\n", pf_sim.sim_time);
+    }
+    printf("\n");
+
+    destroyWindow("Particle Filter");
 
     return 1;
 }

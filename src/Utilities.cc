@@ -19,7 +19,7 @@
 
 #include "Utilities.h"
 
-#define UTILITIES_DEBUG
+//#define UTILITIES_DEBUG
 
 using namespace std;
 using namespace cv;
@@ -76,8 +76,14 @@ namespace lab1 {
                 cout << "Found key word \"autoshifted_y\"." << endl;
 #endif
             } else if (key_word.compare("global_map[0]:") == 0) {
-                fin >> my_map.map_size_x;
-                fin >> my_map.map_size_y;
+
+                int grid_size_x, grid_size_y;
+                fin >> grid_size_x;
+                fin >> grid_size_y;
+                if (grid_size_x != my_map.map_size_x/my_map.resolution ||
+                    grid_size_y != my_map.map_size_y/my_map.resolution){
+                    cerr << "Error: grid size does not match the resolution!" << endl;
+                }
 #ifdef UTILITIES_DEBUG
                 cout << "Found key word \"global_map[0]\"." << endl;
 #endif
@@ -86,9 +92,9 @@ namespace lab1 {
         }
 
         // Read in the map
-        my_map.env_map.create(my_map.map_size_x, my_map.map_size_y, CV_32F);
-        for (int i = 0; i < my_map.map_size_y; ++i) {
-            for (int j = 0; j < my_map.map_size_x; ++j) {
+        my_map.env_map.create((int)(my_map.map_size_x/my_map.resolution),(int)(my_map.map_size_y/my_map.resolution), CV_32F);
+        for (int i = 0; i < (int)(my_map.map_size_x/my_map.resolution); ++i) {
+            for (int j = 0; j < (int)(my_map.map_size_y/my_map.resolution); ++j) {
                 fin >> my_map.env_map.at<float>(i, j);
             }
         }

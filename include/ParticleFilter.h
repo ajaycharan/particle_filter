@@ -111,6 +111,9 @@ namespace lab1 {
         // Set the map
         void setMap(WorldMap& new_map);
 
+        // Generate initial particles
+        void generateInitParticles();
+
         // Interface of the particle filter
         // Note that the interface is overloaded to handle the case where only
         // the input is available

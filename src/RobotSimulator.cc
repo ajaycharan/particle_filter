@@ -12,6 +12,9 @@
 #include "RobotSimulator.h"
 #include "Utilities.h"
 
+
+#define RSIM_DEBUG
+
 using namespace std;
 using namespace cv;
 
@@ -25,7 +28,10 @@ namespace lab1 {
         wean.env_map.convertTo(wean_visual, -1, 0.5f, 0.5f);
         cvtColor(wean_visual, wean_visual, CV_GRAY2RGB);
         wean_visual.copyTo(wean_drawing_copy);
+
+        // Some other settings of the particle filter
         pf_estimator.setMap(wean);
+        pf_estimator.generateInitParticles();
 
         // Read the sensor data
         Utilities::ReadDataLog(sim_config.log_path, odom_data, laser_data);
@@ -88,13 +94,19 @@ namespace lab1 {
         return true;
     }
 
-    void Simulator::drawParticles(string& drawing_mode) {
+    void Simulator::drawParticles(const string& drawing_mode) {
+
+        wean_visual.copyTo(wean_drawing_copy);
 
         // For all particle, compute their locations and orientations
         // in the image
         vector<Particle>& particles = pf_estimator.particles_old;
         vector<Point> p_loc(particles.size());
         vector<Point> p_dir(particles.size());
+
+#ifdef RSIM_DEBUG
+        cout << "Particles #: " << particles.size() << endl;
+#endif
 
         for (unsigned int i = 0; i < particles.size(); ++i) {
 
@@ -103,24 +115,33 @@ namespace lab1 {
 
             float cost = cos(particles[i].theta);
             float sint = sin(particles[i].theta);
-            p_dir[i].x = (int)floor((cost*20.0f + particles[i].x)/wean.resolution+0.5f);
-            p_dir[i].y = (int)floor((sint*20.0f + particles[i].y)/wean.resolution+0.5f);
+            p_dir[i].x = (int)floor((cost*50.0f + particles[i].x)/wean.resolution+0.5f);
+            p_dir[i].y = (int)floor((sint*50.0f + particles[i].y)/wean.resolution+0.5f);
+
+#ifdef RSIM_DEBUG
+            cout << "p" << i << ":" << endl;
+            cout << particles[i].x << " " << particles[i].y << " " << particles[i].theta << endl;
+            cout << p_loc[i].x << " " << p_loc[i].y << endl;
+            cout << p_dir[i].x << " " << p_dir[i].y << endl;
+#endif
 
         }
 
-        if (drawing_mode.compare("loc")) {
+        if (drawing_mode.compare("loc") == 0) {
 
             for (unsigned int i = 0; i < p_loc.size(); ++i) {
                 circle(wean_drawing_copy, p_loc[i], 2, CV_RGB(1.0f, 0.0f, 0.0f), -1);
             }
 
-        } else if (drawing_mode.compare("loc_dir")) {
+        } else if (drawing_mode.compare("loc_dir") == 0) {
 
             for (unsigned int i = 0; i < p_loc.size(); ++i) {
-                circle(wean_drawing_copy, p_loc[i], 2, CV_RGB(1.0f, 0.0f, 0.0f));
+                circle(wean_drawing_copy, p_loc[i], 5, CV_RGB(1.0f, 0.0f, 0.0f));
                 line(wean_drawing_copy, p_loc[i], p_dir[i], CV_RGB(1.0f, 0.0f, 0.0f));
             }
 
+        } else {
+            cerr << "Unrecognized drawing mode: " << drawing_mode << endl;
         }
 
         return;
