@@ -135,6 +135,9 @@ namespace lab1 {
         float rot1_stddev;
         float rot2_stddev;
         float trans_stddev;
+        float rot1_stddev_hat;
+        float rot2_stddev_hat;
+        float trans_stddev_hat;
 
         float alpha1;
         float alpha2;

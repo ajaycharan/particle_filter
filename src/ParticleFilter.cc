@@ -67,6 +67,15 @@ namespace lab1 {
         alpha3       = pf_config.alpha3;
         alpha4       = pf_config.alpha4;
 
+        rot1_stddev_hat  = sqrt(alpha1*rot1_stddev*rot1_stddev + alpha2*trans_stddev*trans_stddev);
+        rot2_stddev_hat  = sqrt(alpha1*rot2_stddev*rot2_stddev + alpha2*trans_stddev*trans_stddev);
+        trans_stddev_hat = sqrt(alpha3*trans_stddev*trans_stddev + alpha4*rot1_stddev*rot1_stddev + alpha4*rot2_stddev*rot2_stddev);
+
+#ifdef PF_DEBUG
+            cout << "rot1 std hat:  " << rot1_stddev_hat << endl;
+            cout << "rot2 std hat:  " << rot2_stddev_hat << endl;
+            cout << "trans std hat: " << trans_stddev_hat << endl;
+#endif
         // Initialize the parameters of the measurement model
         dist_stddev = pf_config.dist_stddev;
         valid_range = 2.5f * dist_stddev;
@@ -200,9 +209,9 @@ namespace lab1 {
         // Create random numbers of normal distribution
         unsigned int rand_seed = chrono::system_clock::now().time_since_epoch().count();
         default_random_engine generator(rand_seed);
-        normal_distribution<float> randn_rot1( 0.0f, alpha1*rot1_stddev + alpha2*trans_stddev);
-        normal_distribution<float> randn_trans(0.0f, alpha3*trans_stddev+ alpha4*rot1_stddev + alpha4*rot2_stddev);
-        normal_distribution<float> randn_rot2( 0.0f, alpha1*rot2_stddev + alpha2*trans_stddev);
+        normal_distribution<float> randn_rot1( 0.0f, rot1_stddev_hat);
+        normal_distribution<float> randn_trans(0.0f, trans_stddev_hat);
+        normal_distribution<float> randn_rot2( 0.0f, rot2_stddev_hat);
 
         // For every particle in the pool, generate a new particle
         // based on the input odometry data
@@ -212,7 +221,17 @@ namespace lab1 {
             float x_diff     = odom_data.x - prev_odom_data.x;
             float y_diff     = odom_data.y - prev_odom_data.y;
             float theta_diff = odom_data.theta - prev_odom_data.theta;
-            float rot1  = atan2(y_diff, x_diff);
+            //float rot1 = 0.0f;
+            //if (fabs(x_diff) > 1e-3) {
+            //    rot1 = atan2(y_diff, x_diff) - prev_odom_data.theta;
+            //} else {
+            //    if (fabs(y_diff) > 1e-2) {
+            //        rot1 = y_diff > 0.0f ? PI/2 : -PI/2;
+            //    } else {
+            //        rot1 = 0.0f;
+            //    }
+            //}
+            float rot1 = atan2(y_diff, x_diff) - prev_odom_data.theta;
             float trans = sqrt(x_diff*x_diff + y_diff*y_diff);
             float rot2  = theta_diff - rot1;
 
@@ -220,10 +239,18 @@ namespace lab1 {
             float rot1_noisy  = rot1  + randn_rot1(generator);
             float trans_noisy = trans + randn_trans(generator);
             float rot2_noisy  = rot2  + randn_rot2(generator);
+#ifdef PF_DEBUG
+            cout << "rot1:  " << rot1  << " " << randn_rot1(generator)  << endl;
+            cout << "rot2:  " << rot2  << " " << randn_rot2(generator)  << endl;
+            cout << "trans: " << trans << " " << randn_trans(generator) << endl;
+#endif
+            //float rot1_noisy  = rot1;
+            //float trans_noisy = trans;
+            //float rot2_noisy  = rot2;
 
             // Compute the new location
-            particles_predict[i].x = particles_old[i].x + cos(particles_old[i].theta+rot1_noisy);
-            particles_predict[i].y = particles_old[i].y + sin(particles_old[i].theta+rot1_noisy);
+            particles_predict[i].x = particles_old[i].x + trans_noisy*cos(particles_old[i].theta+rot1_noisy);
+            particles_predict[i].y = particles_old[i].y + trans_noisy*sin(particles_old[i].theta+rot1_noisy);
             particles_predict[i].theta = particles_old[i].theta + rot1_noisy + rot2_noisy;
         }
 

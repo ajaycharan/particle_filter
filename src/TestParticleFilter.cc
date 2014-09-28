@@ -37,18 +37,18 @@ int main (int argc, char *argv[]) {
     sim_config.log_path = "/home/ke/cplusplus_ws/particle_filter/data/log/robotdata1.log";
 
     // Particle filter configurations
-    sim_config.pf_config.max_particle_size = 10;
+    sim_config.pf_config.max_particle_size = 100;
     sim_config.pf_config.laser_x           = 25.0f;
     sim_config.pf_config.laser_y           = 0.0f;
     sim_config.pf_config.laser_theta       = 0.0f;
     sim_config.pf_config.laser_max_reading = 5000.0f;
-    sim_config.pf_config.rot1_stddev       = 0.08f;
-    sim_config.pf_config.rot2_stddev       = 0.08f;
-    sim_config.pf_config.trans_stddev      = 10.0f;
-    sim_config.pf_config.alpha1            = 0.5f;
-    sim_config.pf_config.alpha2            = 0.5f;
-    sim_config.pf_config.alpha3            = 0.5f;
-    sim_config.pf_config.alpha4            = 0.5f;
+    sim_config.pf_config.rot1_stddev       = 0.04f;
+    sim_config.pf_config.rot2_stddev       = 0.04f;
+    sim_config.pf_config.trans_stddev      = 0.5f;
+    sim_config.pf_config.alpha1            = 1.0f;
+    sim_config.pf_config.alpha2            = 0.0f;
+    sim_config.pf_config.alpha3            = 1.0f;
+    sim_config.pf_config.alpha4            = 0.0f;
     sim_config.pf_config.dist_stddev       = 10.0f;
     sim_config.pf_config.z_hit             = 0.8f;
     sim_config.pf_config.z_random          = 0.2f;
@@ -66,7 +66,7 @@ int main (int argc, char *argv[]) {
 
         pf_sim.drawParticles("loc_dir");
         imshow("Particle Filter", pf_sim.wean_drawing_copy);
-        waitKey(0);
+        waitKey(10);
 
         printf("Sim time: %.4f\n", pf_sim.sim_time);
     }

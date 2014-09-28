@@ -74,6 +74,12 @@ namespace lab1 {
         // Activate the particle filter
         if (t_odom < t_laser) {
 
+#ifdef RSIM_DEBUG
+            cout << "Output odometry data:" << endl;
+            cout << odom_data[next_odom_data].x << " ";
+            cout << odom_data[next_odom_data].y << " ";
+            cout << odom_data[next_odom_data].theta << endl;
+#endif
             // Output the data from the odometry sensor
             sim_time = t_odom;
             pf_estimator.estimate(odom_data[next_odom_data]);
@@ -81,6 +87,12 @@ namespace lab1 {
 
         } else {
 
+#ifdef RSIM_DEBUG
+            cout << "Output laser data:" << endl;
+            cout << laser_data[next_laser_data].odom_robot.x << " ";
+            cout << laser_data[next_laser_data].odom_robot.y << " ";
+            cout << laser_data[next_laser_data].odom_robot.theta << endl;
+#endif
             // Output the data from the laser sensor
             sim_time = t_laser;
             pf_estimator.estimate(laser_data[next_laser_data]);
@@ -104,9 +116,9 @@ namespace lab1 {
         vector<Point> p_loc(particles.size());
         vector<Point> p_dir(particles.size());
 
-#ifdef RSIM_DEBUG
-        cout << "Particles #: " << particles.size() << endl;
-#endif
+//#ifdef RSIM_DEBUG
+//        cout << "Particles #: " << particles.size() << endl;
+//#endif
 
         for (unsigned int i = 0; i < particles.size(); ++i) {
 
@@ -118,12 +130,12 @@ namespace lab1 {
             p_dir[i].x = (int)floor((cost*50.0f + particles[i].x)/wean.resolution+0.5f);
             p_dir[i].y = (int)floor((sint*50.0f + particles[i].y)/wean.resolution+0.5f);
 
-#ifdef RSIM_DEBUG
-            cout << "p" << i << ":" << endl;
-            cout << particles[i].x << " " << particles[i].y << " " << particles[i].theta << endl;
-            cout << p_loc[i].x << " " << p_loc[i].y << endl;
-            cout << p_dir[i].x << " " << p_dir[i].y << endl;
-#endif
+//#ifdef RSIM_DEBUG
+//            cout << "p" << i << ":" << endl;
+//            cout << particles[i].x << " " << particles[i].y << " " << particles[i].theta << endl;
+//            cout << p_loc[i].x << " " << p_loc[i].y << endl;
+//            cout << p_dir[i].x << " " << p_dir[i].y << endl;
+//#endif
 
         }
 
