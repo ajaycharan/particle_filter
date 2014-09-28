@@ -58,7 +58,7 @@ namespace lab1 {
         float y;
         float theta;
         // Weight of the particle
-        float w;
+        double w;
     };
 
     struct ParticleFilterConfig {

@@ -109,8 +109,10 @@ namespace lab1 {
             // Draw the laser measurement for a single particle
             wean_visual.copyTo(wean_drawing_copy);
             drawParticles("loc_dir");
-            unsigned int lucky_pt = pf_estimator.particles_old.size()/2;
-            drawLaserBeam(pf_estimator.particles_old[lucky_pt], laser_data[next_laser_data-1]);
+            if (pf_estimator.particles_update.size() > 0) {
+                unsigned int lucky_pt = pf_estimator.particles_update.size()/2;
+                drawLaserBeam(pf_estimator.particles_update[lucky_pt], laser_data[next_laser_data-1]);
+            }
 #endif
 
             if (t_odom == t_laser)
@@ -134,7 +136,7 @@ namespace lab1 {
 
         // For all particle, compute their locations and orientations
         // in the image
-        vector<Particle>& particles = pf_estimator.particles_old;
+        vector<Particle>& particles = pf_estimator.particles_update;
         vector<Point> p_loc(particles.size());
         vector<Point> p_dir(particles.size());
 
@@ -200,9 +202,6 @@ namespace lab1 {
         int lx_grid = (int)(lx/wean.resolution);
         int ly_grid = (int)(ly/wean.resolution);
 
-#ifdef RSIM_DEBUG
-        cout << "laser origin: " << lx_grid << " " << ly_grid << endl;
-#endif
         for (unsigned int i = 0; i < laser_data.readings.size(); ++i){
 
             float curr_beam = laser_data.readings[i];

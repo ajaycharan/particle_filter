@@ -72,17 +72,11 @@ namespace lab1 {
         rot2_stddev_hat  = sqrt(alpha1*rot2_stddev*rot2_stddev + alpha2*trans_stddev*trans_stddev);
         trans_stddev_hat = sqrt(alpha3*trans_stddev*trans_stddev + alpha4*rot1_stddev*rot1_stddev + alpha4*rot2_stddev*rot2_stddev);
 
-#ifdef PF_DEBUG
-            cout << "rot1 std hat:  " << rot1_stddev_hat << endl;
-            cout << "rot2 std hat:  " << rot2_stddev_hat << endl;
-            cout << "trans std hat: " << trans_stddev_hat << endl;
-#endif
         // Initialize the parameters of the measurement model
         dist_stddev = pf_config.dist_stddev;
         valid_range = 2.5f * dist_stddev;
         z_hit       = pf_config.z_hit;
         z_random    = pf_config.z_random;
-
 
         first_odom_data = true;
 
@@ -138,11 +132,23 @@ namespace lab1 {
         uniform_real_distribution<float> randu_theta(-PI, PI);
 
         for (int i = 0; i < max_particle_size; ++i) {
+            // Add a new particle
             particles_old.push_back(Particle());
-            particles_old[particles_old.size()-1].x = randu_x(generator);
-            particles_old[particles_old.size()-1].y = randu_y(generator);
+
+            // Ensure the particle is on the unoccupied or
+            // unknown location in the map
+            float x = randu_x(generator);
+            float y = randu_y(generator);
+
+            while (wean.env_map.at<float>((int)(y/wean.resolution), (int)(x/wean.resolution)) == 1.0f) {
+                x = randu_x(generator);
+                y = randu_y(generator);
+            }
+
+            particles_old[particles_old.size()-1].x     = x;
+            particles_old[particles_old.size()-1].y     = y;
             particles_old[particles_old.size()-1].theta = randu_theta(generator);
-            particles_old[particles_old.size()-1].w = 0.0f;
+            particles_old[particles_old.size()-1].w     = 0.0f;
         }
 
         return;
@@ -182,9 +188,9 @@ namespace lab1 {
                 // occupied: >= 0.5
                 // free    : < 0.5
                 // unknown : -1
-                if (wean.env_map.at<float>(i, j) >= 0.5f) {
+                if (wean.env_map.at<float>(i, j) >= 0.8f) {
                     wean.env_map.at<float>(i, j) = 0.0f;
-                } else if(wean.env_map.at<float>(i, j) < 0.5f && wean.env_map.at<float>(i, j) > 0.0f) {
+                } else if(wean.env_map.at<float>(i, j) < 0.8f && wean.env_map.at<float>(i, j) > 0.0f) {
                     wean.env_map.at<float>(i, j) = 1.0f;
                 }
             }
@@ -223,36 +229,33 @@ namespace lab1 {
             float x_diff     = odom_data.x - prev_odom_data.x;
             float y_diff     = odom_data.y - prev_odom_data.y;
             float theta_diff = odom_data.theta - prev_odom_data.theta;
-            //float rot1 = 0.0f;
-            //if (fabs(x_diff) > 1e-3) {
-            //    rot1 = atan2(y_diff, x_diff) - prev_odom_data.theta;
-            //} else {
-            //    if (fabs(y_diff) > 1e-2) {
-            //        rot1 = y_diff > 0.0f ? PI/2 : -PI/2;
-            //    } else {
-            //        rot1 = 0.0f;
-            //    }
-            //}
-            float rot1 = atan2(y_diff, x_diff) - prev_odom_data.theta;
-            float trans = sqrt(x_diff*x_diff + y_diff*y_diff);
-            float rot2  = theta_diff - rot1;
+            float rot1       = atan2(y_diff, x_diff) - prev_odom_data.theta;
+            float trans      = sqrt(x_diff*x_diff + y_diff*y_diff);
+            float rot2       = theta_diff - rot1;
 
             // Add some noise to the relative measurements
             float rot1_noisy  = rot1  + randn_rot1(generator);
             float trans_noisy = trans + randn_trans(generator);
             float rot2_noisy  = rot2  + randn_rot2(generator);
-#ifdef PF_DEBUG
-            cout << "rot1:  " << rot1  << " " << randn_rot1(generator)  << endl;
-            cout << "rot2:  " << rot2  << " " << randn_rot2(generator)  << endl;
-            cout << "trans: " << trans << " " << randn_trans(generator) << endl;
-#endif
-            //float rot1_noisy  = rot1;
-            //float trans_noisy = trans;
-            //float rot2_noisy  = rot2;
 
             // Compute the new location
-            particles_predict[i].x = particles_old[i].x + trans_noisy*cos(particles_old[i].theta+rot1_noisy);
-            particles_predict[i].y = particles_old[i].y + trans_noisy*sin(particles_old[i].theta+rot1_noisy);
+            // Ensure the particle is on the unoccupied or
+            // unknown location in the map
+            float x = particles_old[i].x + trans_noisy*cos(particles_old[i].theta+rot1_noisy);
+            float y = particles_old[i].y + trans_noisy*sin(particles_old[i].theta+rot1_noisy);
+
+            while (wean.env_map.at<float>((int)(y/wean.resolution), (int)(x/wean.resolution)) == 1.0f) {
+
+                rot1_noisy  = rot1  + randn_rot1(generator);
+                trans_noisy = trans + randn_trans(generator);
+                rot2_noisy  = rot2  + randn_rot2(generator);
+
+                x = particles_old[i].x + trans_noisy*cos(particles_old[i].theta+rot1_noisy);
+                y = particles_old[i].y + trans_noisy*sin(particles_old[i].theta+rot1_noisy);
+            }
+
+            particles_predict[i].x = x;
+            particles_predict[i].y = y;
             particles_predict[i].theta = particles_old[i].theta + rot1_noisy + rot2_noisy;
         }
 
@@ -288,7 +291,7 @@ namespace lab1 {
     void ParticleFilter::measurementModel(vector<float>& ldata) {
 
         // Store the sum of weights of the particles
-        float weight_sum = 0.0f;
+        double weight_sum = 0.0f;
 
         for (unsigned int particle_index = 0; particle_index < particles_predict.size(); ++particle_index){
 
@@ -306,6 +309,9 @@ namespace lab1 {
                     // Project the laser reading into the map
                     float obstacle_x = px + laser_x*cos(pt) - laser_y*sin(pt) + ldata[beam_index]*sin(pt+(beam_index+0.5f)*DEGREE2RAD);
                     float obstacle_y = py + laser_x*sin(pt) + laser_y*cos(pt) - ldata[beam_index]*cos(pt+(beam_index+0.5f)*DEGREE2RAD);
+
+                    float obstacle_x_grid = obstacle_x / wean.resolution;
+                    float obstacle_y_grid = obstacle_y / wean.resolution;
 
                     // Find the closest occupied grid to the "obstacle" position within a certain region
                     float upper_grid = (obstacle_y - valid_range) / (float)wean.resolution;
@@ -325,8 +331,8 @@ namespace lab1 {
                         for (int j = left; j <= right; ++j) {
 
                             if (wean.env_map.at<float>(i, j) == 1.0f) {
-                                float x_diff = (float)j + 0.5f - obstacle_x;
-                                float y_diff = (float)i + 0.5f - obstacle_y;
+                                float x_diff = (float)j + 0.5f - obstacle_x_grid;
+                                float y_diff = (float)i + 0.5f - obstacle_y_grid;
                                 float dist_square = x_diff*x_diff + y_diff*y_diff;
                                 if (dist_square < shortest_dist_square) {
                                     closest_x = j;
@@ -341,14 +347,14 @@ namespace lab1 {
                     }
 
                     // Compute the probability of the current beam
-                    float norm_dist = sqrt(shortest_dist_square)*wean.resolution / dist_stddev;
-                    float prob_dist = z_hit*((float)normal_cdf(norm_dist+1)-(float)normal_cdf(norm_dist-1)) + z_random/laser_max_reading;
+                    double norm_dist = sqrt(shortest_dist_square)*wean.resolution / dist_stddev;
+                    double prob_dist = (double)z_hit*(normal_cdf(norm_dist+0.1f)-normal_cdf(norm_dist-0.1)) + (double)(z_random/laser_max_reading);
 
                     // Accumulate the probability
-                    particles_predict[particle_index].w *= prob_dist;
+                    particles_predict[particle_index].w += prob_dist;
 
                 } else {
-                    particles_predict[particle_index].w *= z_random/laser_max_reading;
+                    particles_predict[particle_index].w += z_random/laser_max_reading;
                     continue;
                 }
             }
@@ -361,6 +367,14 @@ namespace lab1 {
         for (unsigned int i = 0; i < particles_predict.size(); ++i) {
             particles_predict[i].w /= weight_sum;
         }
+
+#ifdef PF_DEBUG
+        cout << "Particle weights: " << endl;
+        for (unsigned int i = 0; i < particles_predict.size(); ++i) {
+            cout << "p" << i << ": " << particles_predict[i].w << endl;
+        }
+        cout << "Weight sum: " << weight_sum << endl;
+#endif
 
         return;
     }
@@ -380,26 +394,28 @@ namespace lab1 {
         particles_update.clear();
 
         unsigned int particle_size = particles_predict.size();
-        float step_size = 1.0f / (float)particle_size;
+        double step_size = 1.0f / (double)particle_size;
 
         // Generate a random number as the starting point
         unsigned int rand_seed = chrono::system_clock::now().time_since_epoch().count();
         default_random_engine generator(rand_seed);
-        uniform_real_distribution<float> randu_r(0.0f, step_size);
+        uniform_real_distribution<double> randu_r(0.0f, step_size);
         double r = randu_r(generator);
 
-        float c = particles_predict[0].w;
+        double c = particles_predict[0].w;
         unsigned int particle_to_sample = 0;
 
         for (unsigned int i = 0; i < particle_size; ++i) {
 
-            float U = r + (i-1)*step_size;
+            double U = r + (double)i*step_size;
             while (U > c) {
                 ++particle_to_sample;
+                if (particle_to_sample >= particle_size) break;
                 c += particles_predict[particle_to_sample].w;
             }
 
             // Add the sample to represent the belief after resampling
+            if (particle_to_sample >= particle_size) break;
             particles_update.push_back(particles_predict[particle_to_sample]);
 
         }
@@ -457,11 +473,11 @@ namespace lab1 {
 
         // A full pipeline of the particle is implemented
         motionModel(laser_data.odom_robot);
-        //measurementModel(laser_data.readings);
-        //lowVarResample();
+        measurementModel(laser_data.readings);
+        lowVarResample();
 
         particles_old.clear();
-        particles_old = particles_predict;
+        particles_old = particles_update;
         return;
     }
 
