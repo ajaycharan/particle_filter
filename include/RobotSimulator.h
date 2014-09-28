@@ -80,6 +80,9 @@ namespace lab1 {
         // two types of drawing: w/o orientations
         void drawParticles(const std::string& drawing_mode = "loc_dir");
 
+        // Draw laser beams on the image
+        void drawLaserBeam();
+
     private:
 
     };

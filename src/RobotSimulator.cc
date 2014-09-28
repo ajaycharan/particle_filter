@@ -116,10 +116,6 @@ namespace lab1 {
         vector<Point> p_loc(particles.size());
         vector<Point> p_dir(particles.size());
 
-//#ifdef RSIM_DEBUG
-//        cout << "Particles #: " << particles.size() << endl;
-//#endif
-
         for (unsigned int i = 0; i < particles.size(); ++i) {
 
             p_loc[i].x = (int)floor(particles[i].x/wean.resolution+0.5f);
@@ -129,13 +125,6 @@ namespace lab1 {
             float sint = sin(particles[i].theta);
             p_dir[i].x = (int)floor((cost*50.0f + particles[i].x)/wean.resolution+0.5f);
             p_dir[i].y = (int)floor((sint*50.0f + particles[i].y)/wean.resolution+0.5f);
-
-//#ifdef RSIM_DEBUG
-//            cout << "p" << i << ":" << endl;
-//            cout << particles[i].x << " " << particles[i].y << " " << particles[i].theta << endl;
-//            cout << p_loc[i].x << " " << p_loc[i].y << endl;
-//            cout << p_dir[i].x << " " << p_dir[i].y << endl;
-//#endif
 
         }
 
@@ -155,6 +144,11 @@ namespace lab1 {
         } else {
             cerr << "Unrecognized drawing mode: " << drawing_mode << endl;
         }
+
+        return;
+    }
+
+    void Simulator::drawLaserBeam() {
 
         return;
     }

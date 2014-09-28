@@ -207,11 +207,12 @@ namespace lab1 {
         particles_predict.resize(particles_old.size());
 
         // Create random numbers of normal distribution
+        double dt = odom_data.ts - prev_odom_data.ts;
         unsigned int rand_seed = chrono::system_clock::now().time_since_epoch().count();
         default_random_engine generator(rand_seed);
-        normal_distribution<float> randn_rot1( 0.0f, rot1_stddev_hat);
-        normal_distribution<float> randn_trans(0.0f, trans_stddev_hat);
-        normal_distribution<float> randn_rot2( 0.0f, rot2_stddev_hat);
+        normal_distribution<float> randn_rot1( 0.0f, rot1_stddev_hat*(float)dt);
+        normal_distribution<float> randn_trans(0.0f, trans_stddev_hat*(float)dt);
+        normal_distribution<float> randn_rot2( 0.0f, rot2_stddev_hat*(float)dt);
 
         // For every particle in the pool, generate a new particle
         // based on the input odometry data

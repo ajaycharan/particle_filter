@@ -44,7 +44,7 @@ int main (int argc, char *argv[]) {
     sim_config.pf_config.laser_max_reading = 5000.0f;
     sim_config.pf_config.rot1_stddev       = 0.04f;
     sim_config.pf_config.rot2_stddev       = 0.04f;
-    sim_config.pf_config.trans_stddev      = 0.5f;
+    sim_config.pf_config.trans_stddev      = 1.0f;
     sim_config.pf_config.alpha1            = 1.0f;
     sim_config.pf_config.alpha2            = 0.0f;
     sim_config.pf_config.alpha3            = 1.0f;
