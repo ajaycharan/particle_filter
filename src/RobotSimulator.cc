@@ -106,6 +106,15 @@ namespace lab1 {
         return true;
     }
 
+    /**************************************************************
+     * @brief: draw particles on the map image
+     *
+     *      The function provides two drawing modes: w/o
+     *      direction of the robot
+     *
+     * @param
+     * @return
+     **************************************************************/
     void Simulator::drawParticles(const string& drawing_mode) {
 
         wean_visual.copyTo(wean_drawing_copy);
@@ -148,15 +157,43 @@ namespace lab1 {
         return;
     }
 
+    /**************************************************************
+     * @brief: draw the laser beams of a particle
+     *
+     *      Visual the laser beams orginated from a single
+     *      particle for debugging.
+     *
+     * @param
+     * @return
+     **************************************************************/
     void Simulator::drawLaserBeam(Particle& pt, LaserData& laser_data) {
 
-        // Mark where are the laser beams origined
+        // Body frame of the robot
         float cx = pt.x;
         float cy = pt.y;
         float sint = sin(pt.theta);
         float cost = cos(pt.theta);
 
+        // Mark the origin of the laser beam in the world frame
+        // Note that the postion of the origin of the laser beams
+        // in the body frame is hardcoded for convinent purpose.
+        float lx = cost*25.0f + cx;
+        float ly = sint*25.0f + cy;
+
+        int lx_grid = (int)(lx/wean.resolution);
+        int ly_grid = (int)(ly/wean.resolution);
+
         for (unsigned int i = 0; i < laser_data.readings.size(); ++i){
+
+            float curr_beam = laser_data.readings[i];
+            float curr_th = i + 0.008727f;
+            float beamx = curr_beam * cos(curr_th) + lx;
+            float beamy = curr_beam * cos(curr_th) + ly;
+
+            int beamx_grid = (int)(beamx/wean.resolution);
+            int beamy_grid = (int)(beamy/wean.resolution);
+
+            line(wean_drawing_copy, Point(lx_grid, ly_grid), Point(beamx_grid, beamy_grid), CV_RGB(0.0f, 0.0f, 1.0f));
 
         }
         return;

@@ -303,8 +303,8 @@ namespace lab1 {
                 if (ldata[beam_index] < laser_max_reading){
 
                     // Project the laser reading into the map
-                    float obstacle_x = px + laser_x*cos(pt) - laser_y*sin(pt) + ldata[beam_index]*cos(pt+beam_index+0.5f);
-                    float obstacle_y = py + laser_x*sin(pt) + laser_y*cos(pt) + ldata[beam_index]*sin(pt+beam_index+0.5f);
+                    float obstacle_x = px + laser_x*cos(pt) - laser_y*sin(pt) + ldata[beam_index]*cos(pt+beam_index+0.008727f);
+                    float obstacle_y = py + laser_x*sin(pt) + laser_y*cos(pt) + ldata[beam_index]*sin(pt+beam_index+0.008727f);
 
                     // Find the closest occupied grid to the "obstacle" position within a certain region
                     float upper_grid = (obstacle_y - valid_range) / (float)wean.resolution;
