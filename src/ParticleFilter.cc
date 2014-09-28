@@ -347,6 +347,7 @@ namespace lab1 {
                     particles_predict[particle_index].w *= prob_dist;
 
                 } else {
+                    particles_predict[particle_index].w *= z_random/laser_max_reading;
                     continue;
                 }
             }
