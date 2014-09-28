@@ -148,8 +148,17 @@ namespace lab1 {
         return;
     }
 
-    void Simulator::drawLaserBeam() {
+    void Simulator::drawLaserBeam(Particle& pt, LaserData& laser_data) {
 
+        // Mark where are the laser beams origined
+        float cx = pt.x;
+        float cy = pt.y;
+        float sint = sin(pt.theta);
+        float cost = cos(pt.theta);
+
+        for (unsigned int i = 0; i < laser_data.readings.size(); ++i){
+
+        }
         return;
     }
 

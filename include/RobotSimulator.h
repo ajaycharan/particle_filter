@@ -81,7 +81,7 @@ namespace lab1 {
         void drawParticles(const std::string& drawing_mode = "loc_dir");
 
         // Draw laser beams on the image
-        void drawLaserBeam();
+        void drawLaserBeam(Particle& pt, LaserData& laser_data);
 
     private:
 
