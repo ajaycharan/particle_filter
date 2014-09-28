@@ -62,12 +62,11 @@ int main (int argc, char *argv[]) {
     printf("Sim time: %.4f\n", 0.0f);
 
     while (continue_flag) {
+        // Forward the simulation by one step
         continue_flag = pf_sim.oneStepForward();
-
-        pf_sim.drawParticles("loc_dir");
+        // Show the particles and beams
         imshow("Particle Filter", pf_sim.wean_drawing_copy);
-        waitKey(10);
-
+        waitKey(0);
         printf("Sim time: %.4f\n", pf_sim.sim_time);
     }
     printf("\n");

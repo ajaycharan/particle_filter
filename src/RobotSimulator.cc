@@ -12,7 +12,7 @@
 #include "RobotSimulator.h"
 #include "Utilities.h"
 
-
+#define DEGREE2RAD 0.0174533f
 #define RSIM_DEBUG
 
 using namespace std;
@@ -85,6 +85,12 @@ namespace lab1 {
             pf_estimator.estimate(odom_data[next_odom_data]);
             ++next_odom_data;
 
+#ifdef RSIM_DEBUG
+            // Draw the particles
+            wean_visual.copyTo(wean_drawing_copy);
+            drawParticles("loc_dir");
+#endif
+
         } else {
 
 #ifdef RSIM_DEBUG
@@ -97,6 +103,15 @@ namespace lab1 {
             sim_time = t_laser;
             pf_estimator.estimate(laser_data[next_laser_data]);
             ++next_laser_data;
+
+#ifdef RSIM_DEBUG
+            // Draw the particles
+            // Draw the laser measurement for a single particle
+            wean_visual.copyTo(wean_drawing_copy);
+            drawParticles("loc_dir");
+            unsigned int lucky_pt = pf_estimator.particles_old.size()/2;
+            drawLaserBeam(pf_estimator.particles_old[lucky_pt], laser_data[next_laser_data-1]);
+#endif
 
             if (t_odom == t_laser)
                 ++next_odom_data;
@@ -116,8 +131,6 @@ namespace lab1 {
      * @return
      **************************************************************/
     void Simulator::drawParticles(const string& drawing_mode) {
-
-        wean_visual.copyTo(wean_drawing_copy);
 
         // For all particle, compute their locations and orientations
         // in the image
@@ -148,6 +161,10 @@ namespace lab1 {
             for (unsigned int i = 0; i < p_loc.size(); ++i) {
                 circle(wean_drawing_copy, p_loc[i], 5, CV_RGB(1.0f, 0.0f, 0.0f));
                 line(wean_drawing_copy, p_loc[i], p_dir[i], CV_RGB(1.0f, 0.0f, 0.0f));
+                if (i == p_loc.size()/2) {
+                    circle(wean_drawing_copy, p_loc[i], 5, CV_RGB(0.0f, 1.0f, 0.0f));
+                    line(wean_drawing_copy, p_loc[i], p_dir[i], CV_RGB(0.0f, 1.0f, 0.0f));
+                }
             }
 
         } else {
@@ -183,15 +200,20 @@ namespace lab1 {
         int lx_grid = (int)(lx/wean.resolution);
         int ly_grid = (int)(ly/wean.resolution);
 
+#ifdef RSIM_DEBUG
+        cout << "laser origin: " << lx_grid << " " << ly_grid << endl;
+#endif
         for (unsigned int i = 0; i < laser_data.readings.size(); ++i){
 
             float curr_beam = laser_data.readings[i];
-            float curr_th = i + 0.008727f;
-            float beamx = curr_beam * cos(curr_th) + lx;
-            float beamy = curr_beam * cos(curr_th) + ly;
+            float curr_th = ((float)i-90.0f+0.5f)*DEGREE2RAD;
+            float beamx_body = curr_beam*cos(curr_th)+25.0f;
+            float beamy_body = curr_beam*sin(curr_th);
+            float beamx_world = cost*beamx_body - sint*beamy_body + cx;
+            float beamy_world = sint*beamx_body + cost*beamy_body + cy;
 
-            int beamx_grid = (int)(beamx/wean.resolution);
-            int beamy_grid = (int)(beamy/wean.resolution);
+            int beamx_grid = (int)(beamx_world/wean.resolution);
+            int beamy_grid = (int)(beamy_world/wean.resolution);
 
             line(wean_drawing_copy, Point(lx_grid, ly_grid), Point(beamx_grid, beamy_grid), CV_RGB(0.0f, 0.0f, 1.0f));
 
