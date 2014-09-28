@@ -23,6 +23,7 @@ using namespace std;
 using namespace cv;
 
 #define PI  3.14159265358979f
+#define DEGREE2RAD 0.0174533f
 #define A1  0.31938153f
 #define A2 -0.356563782f
 #define A3  1.781477937f
@@ -303,8 +304,8 @@ namespace lab1 {
                 if (ldata[beam_index] < laser_max_reading){
 
                     // Project the laser reading into the map
-                    float obstacle_x = px + laser_x*cos(pt) - laser_y*sin(pt) + ldata[beam_index]*cos(pt+beam_index+0.008727f);
-                    float obstacle_y = py + laser_x*sin(pt) + laser_y*cos(pt) + ldata[beam_index]*sin(pt+beam_index+0.008727f);
+                    float obstacle_x = px + laser_x*cos(pt) - laser_y*sin(pt) + ldata[beam_index]*sin(pt+(beam_index+0.5f)*DEGREE2RAD);
+                    float obstacle_y = py + laser_x*sin(pt) + laser_y*cos(pt) - ldata[beam_index]*cos(pt+(beam_index+0.5f)*DEGREE2RAD);
 
                     // Find the closest occupied grid to the "obstacle" position within a certain region
                     float upper_grid = (obstacle_y - valid_range) / (float)wean.resolution;
