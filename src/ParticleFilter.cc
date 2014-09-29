@@ -221,6 +221,7 @@ namespace lab1 {
         normal_distribution<float> randn_rot1( 0.0f, rot1_stddev_hat*(float)dt);
         normal_distribution<float> randn_trans(0.0f, trans_stddev_hat*(float)dt);
         normal_distribution<float> randn_rot2( 0.0f, rot2_stddev_hat*(float)dt);
+
         uniform_real_distribution<float> randu_x(0.0f, wean.map_size_x-1);
         uniform_real_distribution<float> randu_y(0.0f, wean.map_size_y-1);
         uniform_real_distribution<float> randu_theta(-PI, PI);
