@@ -150,16 +150,7 @@ namespace lab1 {
             particles_old[particles_old.size()-1].theta = randu_theta(generator);
             particles_old[particles_old.size()-1].w     = 0.0f;
         }
-/*
-#ifdef PF_DEBUG
-        particles_old.clear();
-        particles_old.push_back(Particle());
-        particles_old[0].x = 4200.0f;
-        particles_old[0].y = 4000.0f;
-        particles_old[0].theta = PI;
-        particles_old[0].w = 0.0f;
-#endif
-*/
+
         return;
     }
 
@@ -409,14 +400,8 @@ namespace lab1 {
 
         // Normalize the weight of all the particles
         for (unsigned int i = 0; i < particles_predict.size(); ++i) {
-#ifdef PF_DEBUG
-            //cout << "P" << i << ": " << particles_predict[i].w << endl;
-#endif
             particles_predict[i].w /= weight_sum;
         }
-#ifdef PF_DEBUG
-        //cout << "Weight sum: " << weight_sum << endl;
-#endif
 
         return;
     }
@@ -525,28 +510,3 @@ namespace lab1 {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
