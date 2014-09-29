@@ -150,7 +150,16 @@ namespace lab1 {
             particles_old[particles_old.size()-1].theta = randu_theta(generator);
             particles_old[particles_old.size()-1].w     = 0.0f;
         }
-
+/*
+#ifdef PF_DEBUG
+        particles_old.clear();
+        particles_old.push_back(Particle());
+        particles_old[0].x = 4200.0f;
+        particles_old[0].y = 4000.0f;
+        particles_old[0].theta = PI;
+        particles_old[0].w = 0.0f;
+#endif
+*/
         return;
     }
 
@@ -331,56 +340,66 @@ namespace lab1 {
 
                 if (ldata[beam_index] < laser_max_reading){
 
-                    // Project the laser reading into the map
-                    float obstacle_x = px + laser_x*cos(pt) - laser_y*sin(pt) + ldata[beam_index]*sin(pt+(beam_index+0.5f)*DEGREE2RAD);
-                    float obstacle_y = py + laser_x*sin(pt) + laser_y*cos(pt) - ldata[beam_index]*cos(pt+(beam_index+0.5f)*DEGREE2RAD);
+                    // Create some sub-beams within the cone of current beam
+                    float bt = (float)beam_index - 90.0f;
+                    vector<float> sub_beams(3);
+                    sub_beams[0] = bt + 0.1667f;
+                    sub_beams[1] = bt + 0.5000f;
+                    sub_beams[2] = bt + 0.8333f;
 
-                    float obstacle_x_grid = obstacle_x / wean.resolution;
-                    float obstacle_y_grid = obstacle_y / wean.resolution;
+                    // Find the closest obstacle in the directoin of any sub-beam
+                    float obstacle_x, obstacle_y;
+                    float shortest_dist = 1e10;
 
-                    // Find the closest occupied grid to the "obstacle" position within a certain region
-                    float upper_grid = (obstacle_y - valid_range) / (float)wean.resolution;
-                    float lower_grid = (obstacle_y + valid_range) / (float)wean.resolution;
-                    float left_grid  = (obstacle_x - valid_range) / (float)wean.resolution;
-                    float right_grid = (obstacle_x + valid_range) / (float)wean.resolution;
+                    for (unsigned int sub_beam_index = 0; sub_beam_index < sub_beams.size(); ++sub_beam_index) {
 
-                    int upper = (upper_grid > 0.0f) ? (int)floor(upper_grid) : 0;
-                    int lower = (lower_grid < wean.map_size_y/wean.resolution-1.0f) ? (int)ceil(lower_grid) : wean.map_size_y/wean.resolution-1;
-                    int left  = (left_grid > 0.0f)  ? (int)floor(left_grid) : 0;
-                    int right = (right_grid < wean.map_size_x/wean.resolution-1.0f) ? (int)ceil(right_grid) : wean.map_size_x/wean.resolution-1;
+                        // Mark the nearest obstacle has been met in this sub-directoin
+                        bool hit_nearest = false;
+                        bool out_range   = false;
 
-                    int closest_x, closest_y;
-                    float shortest_dist_square = 1e10;
+                        for (float probe_dist = 10.0f; probe_dist <= 3000.0f; probe_dist+=10.0f) {
 
-                    for (int i = upper; i <= lower; ++i) {
-                        for (int j = left; j <= right; ++j) {
+                            float probe_x = px + laser_x*cos(pt) - laser_y*sin(pt) + probe_dist*cos(pt+sub_beams[sub_beam_index]*DEGREE2RAD);
+                            float probe_y = py + laser_x*sin(pt) + laser_y*cos(pt) + probe_dist*sin(pt+sub_beams[sub_beam_index]*DEGREE2RAD);
 
-                            if (wean.env_map.at<float>(i, j) == 1.0f) {
-                                float x_diff = (float)j + 0.5f - obstacle_x_grid;
-                                float y_diff = (float)i + 0.5f - obstacle_y_grid;
-                                float dist_square = x_diff*x_diff + y_diff*y_diff;
-                                if (dist_square < shortest_dist_square) {
-                                    closest_x = j;
-                                    closest_y = i;
-                                    shortest_dist_square = dist_square;
+                            int probe_grid_x = (int)(probe_x/wean.resolution+0.5f);
+                            int probe_grid_y = (int)(probe_y/wean.resolution+0.5f);
+
+                            if (probe_grid_x >= 0 && probe_grid_x < wean.map_size_x/wean.resolution &&
+                                probe_grid_y >= 0 && probe_grid_y < wean.map_size_y/wean.resolution) {
+                                if (wean.env_map.at<float>(probe_grid_y, probe_grid_x) == 1.0f) {
+                                    hit_nearest = true;
+                                    if (probe_dist < shortest_dist){
+                                        obstacle_x = probe_x;
+                                        obstacle_y = probe_y;
+                                        shortest_dist = probe_dist;
+                                    }
+                                    break;
                                 }
                             } else {
-                                continue;
+                                out_range = true;
+                                break;
                             }
-
                         }
+                        // Proceed to the next sub-beam
+                        if (hit_nearest || out_range) continue;
                     }
 
-                    // Compute the probability of the current beam
-                    double norm_dist = sqrt(shortest_dist_square)*wean.resolution / dist_stddev;
-                    double prob_dist = (double)z_hit*(normal_cdf(norm_dist+0.1f)-normal_cdf(norm_dist-0.1)) + (double)(z_random/laser_max_reading);
+                    // Project the laser reading into the map
+                    float beam_x = px + laser_x*cos(pt) - laser_y*sin(pt) + ldata[beam_index]*sin(pt+((float)beam_index+0.5f)*DEGREE2RAD);
+                    float beam_y = py + laser_x*sin(pt) + laser_y*cos(pt) - ldata[beam_index]*cos(pt+((float)beam_index+0.5f)*DEGREE2RAD);
 
-                    // Accumulate the probability
+                    // Compute the distance between the measurement of the laser beam
+                    // with the neareat obstacle in that direction
+                    float dist_obstacle_laser = (obstacle_x-beam_x)*(obstacle_x-beam_x)+(obstacle_y-beam_y)*(obstacle_y-beam_y);
+
+                    // Compute the probability of the current beam
+                    double norm_dist = sqrt(dist_obstacle_laser) / dist_stddev;
+                    double prob_dist = (double)z_hit*(normal_cdf(norm_dist+0.1f)-normal_cdf(norm_dist-0.1f)) + (double)(z_random/laser_max_reading);
                     particles_predict[particle_index].w += prob_dist;
 
                 } else {
                     particles_predict[particle_index].w += z_random/laser_max_reading;
-                    continue;
                 }
             }
 
@@ -390,8 +409,14 @@ namespace lab1 {
 
         // Normalize the weight of all the particles
         for (unsigned int i = 0; i < particles_predict.size(); ++i) {
+#ifdef PF_DEBUG
+            //cout << "P" << i << ": " << particles_predict[i].w << endl;
+#endif
             particles_predict[i].w /= weight_sum;
         }
+#ifdef PF_DEBUG
+        //cout << "Weight sum: " << weight_sum << endl;
+#endif
 
         return;
     }
@@ -495,6 +520,7 @@ namespace lab1 {
 
         particles_old.clear();
         particles_old = particles_update;
+        //particles_old = particles_predict;
         return;
     }
 
