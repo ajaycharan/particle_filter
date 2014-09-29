@@ -25,13 +25,16 @@ namespace lab1 {
 
         // Read the map
         Utilities::ReadMap(sim_config.map_path, wean);
-        wean.env_map.convertTo(wean_visual, -1, 0.5f, 0.5f);
-        cvtColor(wean_visual, wean_visual, CV_GRAY2RGB);
-        wean_visual.copyTo(wean_drawing_copy);
+        //flip(wean.env_map, wean.env_map, 0);
 
         // Some other settings of the particle filter
         pf_estimator.setMap(wean);
         pf_estimator.generateInitParticles();
+
+        pf_estimator.wean.env_map.copyTo(wean_visual);
+        wean_visual.convertTo(wean_visual, -1, 0.5f, 0.5f);
+        cvtColor(wean_visual, wean_visual, CV_GRAY2RGB);
+        wean_visual.copyTo(wean_drawing_copy);
 
         // Read the sensor data
         Utilities::ReadDataLog(sim_config.log_path, odom_data, laser_data);
@@ -109,9 +112,9 @@ namespace lab1 {
             // Draw the laser measurement for a single particle
             wean_visual.copyTo(wean_drawing_copy);
             drawParticles("loc_dir");
-            if (pf_estimator.particles_update.size() > 0) {
-                unsigned int lucky_pt = pf_estimator.particles_update.size()/2;
-                drawLaserBeam(pf_estimator.particles_update[lucky_pt], laser_data[next_laser_data-1]);
+            if (pf_estimator.particles_old.size() > 0) {
+                unsigned int lucky_pt = pf_estimator.particles_old.size()/2;
+                drawLaserBeam(pf_estimator.particles_old[lucky_pt], laser_data[next_laser_data-1]);
             }
 #endif
 
@@ -136,7 +139,7 @@ namespace lab1 {
 
         // For all particle, compute their locations and orientations
         // in the image
-        vector<Particle>& particles = pf_estimator.particles_update;
+        vector<Particle>& particles = pf_estimator.particles_old;
         vector<Point> p_loc(particles.size());
         vector<Point> p_dir(particles.size());
 

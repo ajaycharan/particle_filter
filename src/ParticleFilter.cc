@@ -140,7 +140,7 @@ namespace lab1 {
             float x = randu_x(generator);
             float y = randu_y(generator);
 
-            while (wean.env_map.at<float>((int)(y/wean.resolution), (int)(x/wean.resolution)) == 1.0f) {
+            while (wean.env_map.at<float>((int)(y/wean.resolution), (int)(x/wean.resolution)) != 0.0f) {
                 x = randu_x(generator);
                 y = randu_y(generator);
             }
@@ -217,18 +217,26 @@ namespace lab1 {
         double dt = odom_data.ts - prev_odom_data.ts;
         unsigned int rand_seed = chrono::system_clock::now().time_since_epoch().count();
         default_random_engine generator(rand_seed);
+
         normal_distribution<float> randn_rot1( 0.0f, rot1_stddev_hat*(float)dt);
         normal_distribution<float> randn_trans(0.0f, trans_stddev_hat*(float)dt);
         normal_distribution<float> randn_rot2( 0.0f, rot2_stddev_hat*(float)dt);
+        uniform_real_distribution<float> randu_x(0.0f, wean.map_size_x-1);
+        uniform_real_distribution<float> randu_y(0.0f, wean.map_size_y-1);
+        uniform_real_distribution<float> randu_theta(-PI, PI);
 
         // For every particle in the pool, generate a new particle
         // based on the input odometry data
         for (unsigned int i = 0; i < particles_old.size(); ++i) {
 
+            // Count the trial rounds
+            int trial_cntr = 1;
+
             // Compute the relative rotation and translation
             float x_diff     = odom_data.x - prev_odom_data.x;
             float y_diff     = odom_data.y - prev_odom_data.y;
             float theta_diff = odom_data.theta - prev_odom_data.theta;
+
             float rot1       = atan2(y_diff, x_diff) - prev_odom_data.theta;
             float trans      = sqrt(x_diff*x_diff + y_diff*y_diff);
             float rot2       = theta_diff - rot1;
@@ -244,7 +252,7 @@ namespace lab1 {
             float x = particles_old[i].x + trans_noisy*cos(particles_old[i].theta+rot1_noisy);
             float y = particles_old[i].y + trans_noisy*sin(particles_old[i].theta+rot1_noisy);
 
-            while (wean.env_map.at<float>((int)(y/wean.resolution), (int)(x/wean.resolution)) == 1.0f) {
+            while (wean.env_map.at<float>((int)(y/wean.resolution), (int)(x/wean.resolution)) != 0.0f && trial_cntr < 20) {
 
                 rot1_noisy  = rot1  + randn_rot1(generator);
                 trans_noisy = trans + randn_trans(generator);
@@ -252,11 +260,27 @@ namespace lab1 {
 
                 x = particles_old[i].x + trans_noisy*cos(particles_old[i].theta+rot1_noisy);
                 y = particles_old[i].y + trans_noisy*sin(particles_old[i].theta+rot1_noisy);
+
+                ++trial_cntr;
+            }
+
+            if (trial_cntr >= 20) {
+                x = randu_x(generator);
+                y = randu_y(generator);
+
+                while (wean.env_map.at<float>((int)(y/wean.resolution), (int)(x/wean.resolution)) != 0.0f) {
+                    x = randu_x(generator);
+                    y = randu_y(generator);
+                }
             }
 
             particles_predict[i].x = x;
             particles_predict[i].y = y;
-            particles_predict[i].theta = particles_old[i].theta + rot1_noisy + rot2_noisy;
+            if (trial_cntr < 20){
+                particles_predict[i].theta = particles_old[i].theta + rot1_noisy + rot2_noisy;
+            } else {
+                particles_predict[i].theta = randu_theta(generator);
+            }
         }
 
         //Delete the particles which are out of the map
@@ -367,14 +391,6 @@ namespace lab1 {
         for (unsigned int i = 0; i < particles_predict.size(); ++i) {
             particles_predict[i].w /= weight_sum;
         }
-
-#ifdef PF_DEBUG
-        cout << "Particle weights: " << endl;
-        for (unsigned int i = 0; i < particles_predict.size(); ++i) {
-            cout << "p" << i << ": " << particles_predict[i].w << endl;
-        }
-        cout << "Weight sum: " << weight_sum << endl;
-#endif
 
         return;
     }
