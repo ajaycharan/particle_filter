@@ -337,7 +337,7 @@ namespace lab1 {
             particles_predict[particle_index].w = 0.0f;
 
             // Update the weight using the readings from the laser
-            for (unsigned int beam_index = 0; beam_index < ldata.size(); beam_index+=10) {
+            for (unsigned int beam_index = 0; beam_index < ldata.size(); beam_index+=18) {
 
                 if (ldata[beam_index] < laser_max_reading){
 
