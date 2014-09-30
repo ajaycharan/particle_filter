@@ -31,6 +31,7 @@ namespace lab1 {
         pf_estimator.setMap(wean);
         pf_estimator.generateInitParticles();
 
+        //wean.env_map.copyTo(wean_visual);
         pf_estimator.wean.env_map.copyTo(wean_visual);
         wean_visual.convertTo(wean_visual, -1, 0.5f, 0.5f);
         cvtColor(wean_visual, wean_visual, CV_GRAY2RGB);
@@ -57,12 +58,14 @@ namespace lab1 {
      *      data.
      *
      * @param
-     * @return : if there is still data available
+     * @return : 0 --> no more sensor data
+     *           1 --> read odometry data
+     *           2 --> read laser data
      **************************************************************/
-    bool Simulator::oneStepForward() {
+    int Simulator::oneStepForward() {
 
         if (next_odom_data >= odom_data.size() && next_laser_data >= laser_data.size()){
-            return false;
+            return 0;
         }
 
         // Check which data should be output at the next moment
@@ -77,12 +80,6 @@ namespace lab1 {
         // Activate the particle filter
         if (t_odom < t_laser) {
 
-#ifdef RSIM_DEBUG
-            cout << "Output odometry data:" << endl;
-            cout << odom_data[next_odom_data].x << " ";
-            cout << odom_data[next_odom_data].y << " ";
-            cout << odom_data[next_odom_data].theta << endl;
-#endif
             // Output the data from the odometry sensor
             sim_time = t_odom;
             pf_estimator.estimate(odom_data[next_odom_data]);
@@ -91,17 +88,12 @@ namespace lab1 {
 #ifdef RSIM_DEBUG
             // Draw the particles
             wean_visual.copyTo(wean_drawing_copy);
-            drawParticles("loc_dir");
+            drawParticles("loc");
 #endif
+            return 1;
 
         } else {
 
-#ifdef RSIM_DEBUG
-            cout << "Output laser data:" << endl;
-            cout << laser_data[next_laser_data].odom_robot.x << " ";
-            cout << laser_data[next_laser_data].odom_robot.y << " ";
-            cout << laser_data[next_laser_data].odom_robot.theta << endl;
-#endif
             // Output the data from the laser sensor
             sim_time = t_laser;
             pf_estimator.estimate(laser_data[next_laser_data]);
@@ -111,7 +103,7 @@ namespace lab1 {
             // Draw the particles
             // Draw the laser measurement for a single particle
             wean_visual.copyTo(wean_drawing_copy);
-            drawParticles("loc_dir");
+            drawParticles("loc");
             if (pf_estimator.particles_old.size() > 0) {
                 unsigned int lucky_pt = pf_estimator.particles_old.size()/2;
                 drawLaserBeam(pf_estimator.particles_old[lucky_pt], laser_data[next_laser_data-1]);
@@ -121,9 +113,10 @@ namespace lab1 {
             if (t_odom == t_laser)
                 ++next_odom_data;
 
+            return 2;
+
         }
 
-        return true;
     }
 
     /**************************************************************

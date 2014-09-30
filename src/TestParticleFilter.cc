@@ -37,11 +37,11 @@ int main (int argc, char *argv[]) {
     sim_config.log_path = "/home/ke/cplusplus_ws/particle_filter/data/log/robotdata1.log";
 
     // Particle filter configurations
-    sim_config.pf_config.max_particle_size = 1200;
+    sim_config.pf_config.max_particle_size = 2000;
     sim_config.pf_config.laser_x           = 25.0f;
     sim_config.pf_config.laser_y           = 0.0f;
     sim_config.pf_config.laser_theta       = 0.0f;
-    sim_config.pf_config.laser_max_reading = 3000.0f;
+    sim_config.pf_config.laser_max_reading = 5000.0f;
     sim_config.pf_config.rot1_stddev       = 0.2f;
     sim_config.pf_config.rot2_stddev       = 0.2f;
     sim_config.pf_config.trans_stddev      = 20.0f;
@@ -49,7 +49,7 @@ int main (int argc, char *argv[]) {
     sim_config.pf_config.alpha2            = 0.0f;
     sim_config.pf_config.alpha3            = 1.0f;
     sim_config.pf_config.alpha4            = 0.0f;
-    sim_config.pf_config.dist_stddev       = 20.0f;
+    sim_config.pf_config.dist_stddev       = 1.0f;
     sim_config.pf_config.z_hit             = 0.9f;
     sim_config.pf_config.z_random          = 0.1f;
 
@@ -58,16 +58,20 @@ int main (int argc, char *argv[]) {
      *      Start the simulator
      *********************************/
     Simulator pf_sim(sim_config);
-    bool continue_flag = true;
-    printf("Sim time: %.4f\n", 0.0f);
+    int data_flag = 1;
 
-    while (continue_flag) {
+    while (data_flag) {
         // Forward the simulation by one step
-        continue_flag = pf_sim.oneStepForward();
+        data_flag = pf_sim.oneStepForward();
+        printf("Sim time: %.4f\n", pf_sim.sim_time);
+
         // Show the particles and beams
         imshow("Particle Filter", pf_sim.wean_drawing_copy);
-        waitKey(10);
-        printf("Sim time: %.4f\n", pf_sim.sim_time);
+        if (data_flag == 1) {
+            waitKey(10);
+        } else {
+            waitKey(10);
+        }
     }
     printf("\n");
 

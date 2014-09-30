@@ -74,7 +74,7 @@ namespace lab1 {
 
         // Interface of the simulator
         // Send sensor data to the particle filter based on the simulation time
-        bool oneStepForward();
+        int oneStepForward();
 
         // Draw the particles on the image
         // two types of drawing: w/o orientations

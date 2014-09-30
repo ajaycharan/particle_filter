@@ -188,10 +188,12 @@ namespace lab1 {
                 // occupied: >= 0.5
                 // free    : < 0.5
                 // unknown : -1
-                if (wean.env_map.at<float>(i, j) >= 0.8f) {
+                if (wean.env_map.at<float>(i, j) >= 0.9f) {
                     wean.env_map.at<float>(i, j) = 0.0f;
-                } else if(wean.env_map.at<float>(i, j) < 0.8f && wean.env_map.at<float>(i, j) > 0.0f) {
+                } else if(wean.env_map.at<float>(i, j) < 0.1f && wean.env_map.at<float>(i, j) >= 0.0f) {
                     wean.env_map.at<float>(i, j) = 1.0f;
+                } else {
+                    wean.env_map.at<float>(i, j) = -1.0f;
                 }
             }
         }
@@ -324,7 +326,9 @@ namespace lab1 {
             float px = particles_predict[particle_index].x;
             float py = particles_predict[particle_index].y;
             float pt = particles_predict[particle_index].theta;
-            particles_predict[particle_index].w = 1.0f;
+            float cospt = cos(pt);
+            float sinpt = sin(pt);
+            particles_predict[particle_index].w = 0.0f;
 
             // Update the weight using the readings from the laser
             for (unsigned int beam_index = 0; beam_index < ldata.size(); ++beam_index) {
@@ -348,10 +352,10 @@ namespace lab1 {
                         bool hit_nearest = false;
                         bool out_range   = false;
 
-                        for (float probe_dist = 10.0f; probe_dist <= 3000.0f; probe_dist+=10.0f) {
+                        for (float probe_dist = 10.0f; probe_dist <= laser_max_reading; probe_dist+=10.0f) {
 
-                            float probe_x = px + laser_x*cos(pt) - laser_y*sin(pt) + probe_dist*cos(pt+sub_beams[sub_beam_index]*DEGREE2RAD);
-                            float probe_y = py + laser_x*sin(pt) + laser_y*cos(pt) + probe_dist*sin(pt+sub_beams[sub_beam_index]*DEGREE2RAD);
+                            float probe_x = px + laser_x*cospt - laser_y*sinpt + probe_dist*cos(pt+sub_beams[sub_beam_index]*DEGREE2RAD);
+                            float probe_y = py + laser_x*sinpt + laser_y*cospt + probe_dist*sin(pt+sub_beams[sub_beam_index]*DEGREE2RAD);
 
                             int probe_grid_x = (int)(probe_x/wean.resolution+0.5f);
                             int probe_grid_y = (int)(probe_y/wean.resolution+0.5f);
@@ -377,8 +381,8 @@ namespace lab1 {
                     }
 
                     // Project the laser reading into the map
-                    float beam_x = px + laser_x*cos(pt) - laser_y*sin(pt) + ldata[beam_index]*sin(pt+((float)beam_index+0.5f)*DEGREE2RAD);
-                    float beam_y = py + laser_x*sin(pt) + laser_y*cos(pt) - ldata[beam_index]*cos(pt+((float)beam_index+0.5f)*DEGREE2RAD);
+                    float beam_x = px + laser_x*cospt - laser_y*sinpt + ldata[beam_index]*sin(pt+((float)beam_index+0.5f)*DEGREE2RAD);
+                    float beam_y = py + laser_x*sinpt + laser_y*cospt - ldata[beam_index]*cos(pt+((float)beam_index+0.5f)*DEGREE2RAD);
 
                     // Compute the distance between the measurement of the laser beam
                     // with the neareat obstacle in that direction
@@ -386,11 +390,9 @@ namespace lab1 {
 
                     // Compute the probability of the current beam
                     double norm_dist = sqrt(dist_obstacle_laser) / dist_stddev;
-                    double prob_dist = (double)z_hit*(normal_cdf(norm_dist+0.1f)-normal_cdf(norm_dist-0.1f)) + (double)(z_random/laser_max_reading);
+                    double prob_dist = (double)z_hit*(normal_cdf(norm_dist+0.01f)-normal_cdf(norm_dist-0.01f)) + (double)(z_random/laser_max_reading);
                     particles_predict[particle_index].w += prob_dist;
 
-                } else {
-                    particles_predict[particle_index].w += z_random/laser_max_reading;
                 }
             }
 
