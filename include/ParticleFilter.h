@@ -159,7 +159,7 @@ namespace lab1 {
         // Categorize the map
         void mapCategorize();
         // Create new particles based on the control input (odom data)
-        void motionModel(OdometryData& odom_data);
+        bool motionModel(OdometryData& odom_data);
         // Compute the weight for each new sample
         void measurementModel(std::vector<float>& ldata);
         // Create new samples according to the weights

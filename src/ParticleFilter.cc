@@ -210,7 +210,9 @@ namespace lab1 {
      * @param  odom_data: readings from the odometry
      * @return Nil
      **************************************************************/
-    void ParticleFilter::motionModel(OdometryData& odom_data){
+    bool ParticleFilter::motionModel(OdometryData& odom_data){
+
+        bool if_resample = true;
 
         // Clear the original pool of particles
         particles_predict.resize(particles_old.size());
@@ -228,6 +230,15 @@ namespace lab1 {
         uniform_real_distribution<float> randu_y(0.0f, wean.map_size_y-1);
         uniform_real_distribution<float> randu_theta(-PI, PI);
 
+        // Compute the relative rotation and translation
+        float x_diff     = odom_data.x - prev_odom_data.x;
+        float y_diff     = odom_data.y - prev_odom_data.y;
+        float theta_diff = odom_data.theta - prev_odom_data.theta;
+
+        if (fabsf(x_diff) < 1.0f && fabsf(y_diff) < 1.0f && fabsf(theta_diff) < 1.0f){
+            if_resample = false;
+        }
+
         // For every particle in the pool, generate a new particle
         // based on the input odometry data
         for (unsigned int i = 0; i < particles_old.size(); ++i) {
@@ -235,14 +246,9 @@ namespace lab1 {
             // Count the trial rounds
             int trial_cntr = 1;
 
-            // Compute the relative rotation and translation
-            float x_diff     = odom_data.x - prev_odom_data.x;
-            float y_diff     = odom_data.y - prev_odom_data.y;
-            float theta_diff = odom_data.theta - prev_odom_data.theta;
-
-            float rot1       = atan2(y_diff, x_diff) - prev_odom_data.theta;
-            float trans      = sqrt(x_diff*x_diff + y_diff*y_diff);
-            float rot2       = theta_diff - rot1;
+            float rot1  = atan2(y_diff, x_diff) - prev_odom_data.theta;
+            float trans = sqrt(x_diff*x_diff + y_diff*y_diff);
+            float rot2  = theta_diff - rot1;
 
             // Add some noise to the relative measurements
             float rot1_noisy  = rot1  + randn_rot1(generator);
@@ -302,7 +308,7 @@ namespace lab1 {
         // Update the previous data
         prev_odom_data = odom_data;
 
-        return;
+        return if_resample;
     }
 
     /**************************************************************
@@ -331,16 +337,18 @@ namespace lab1 {
             particles_predict[particle_index].w = 0.0f;
 
             // Update the weight using the readings from the laser
-            for (unsigned int beam_index = 0; beam_index < ldata.size(); ++beam_index) {
+            for (unsigned int beam_index = 0; beam_index < ldata.size(); beam_index+=10) {
 
                 if (ldata[beam_index] < laser_max_reading){
 
                     // Create some sub-beams within the cone of current beam
                     float bt = (float)beam_index - 90.0f;
-                    vector<float> sub_beams(3);
-                    sub_beams[0] = bt + 0.1667f;
-                    sub_beams[1] = bt + 0.5000f;
-                    sub_beams[2] = bt + 0.8333f;
+                    //vector<float> sub_beams(3);
+                    //sub_beams[0] = bt + 0.1667f;
+                    //sub_beams[1] = bt + 0.5000f;
+                    //sub_beams[2] = bt + 0.8333f;
+                    vector<float> sub_beams(1);
+                    sub_beams[0] = bt + 0.5f;
 
                     // Find the closest obstacle in the directoin of any sub-beam
                     float obstacle_x, obstacle_y;
@@ -501,13 +509,16 @@ namespace lab1 {
         }
 
         // A full pipeline of the particle is implemented
-        motionModel(laser_data.odom_robot);
-        measurementModel(laser_data.readings);
-        lowVarResample();
+        bool if_resample = motionModel(laser_data.odom_robot);
+        if (if_resample) {
+            measurementModel(laser_data.readings);
+            lowVarResample();
+            particles_old.clear();
+            particles_old = particles_update;
+        } else {
+            particles_old = particles_predict;
+        }
 
-        particles_old.clear();
-        particles_old = particles_update;
-        //particles_old = particles_predict;
         return;
     }
 
