@@ -190,7 +190,7 @@ namespace lab1 {
                 // unknown : -1
                 if (wean.env_map.at<float>(i, j) >= 0.9f) {
                     wean.env_map.at<float>(i, j) = 0.0f;
-                } else if(wean.env_map.at<float>(i, j) < 0.1f && wean.env_map.at<float>(i, j) >= 0.0f) {
+                } else if(wean.env_map.at<float>(i, j) < 0.05f && wean.env_map.at<float>(i, j) >= 0.0f) {
                     wean.env_map.at<float>(i, j) = 1.0f;
                 } else {
                     wean.env_map.at<float>(i, j) = -1.0f;
@@ -235,7 +235,7 @@ namespace lab1 {
         float y_diff     = odom_data.y - prev_odom_data.y;
         float theta_diff = odom_data.theta - prev_odom_data.theta;
 
-        if (fabsf(x_diff) < 1.0f && fabsf(y_diff) < 1.0f && fabsf(theta_diff) < 1.0f){
+        if (fabsf(x_diff) < 1.0f && fabsf(y_diff) < 1.0f && fabsf(theta_diff) < 0.02f){
             if_resample = false;
         }
 
@@ -337,7 +337,7 @@ namespace lab1 {
             particles_predict[particle_index].w = 0.0f;
 
             // Update the weight using the readings from the laser
-            for (unsigned int beam_index = 0; beam_index < ldata.size(); beam_index+=18) {
+            for (unsigned int beam_index = 9; beam_index < ldata.size(); beam_index+=18) {
 
                 if (ldata[beam_index] < laser_max_reading){
 
@@ -398,7 +398,7 @@ namespace lab1 {
 
                     // Compute the probability of the current beam
                     double norm_dist = sqrt(dist_obstacle_laser) / dist_stddev;
-                    double prob_dist = (double)z_hit*(normal_cdf(norm_dist+0.01f)-normal_cdf(norm_dist-0.01f)) + (double)(z_random/laser_max_reading);
+                    double prob_dist = (double)z_hit*(normal_cdf(norm_dist+0.1f)-normal_cdf(norm_dist-0.1f)) + (double)(z_random/laser_max_reading);
                     particles_predict[particle_index].w += prob_dist;
 
                 }
@@ -516,6 +516,7 @@ namespace lab1 {
             particles_old.clear();
             particles_old = particles_update;
         } else {
+            particles_old.clear();
             particles_old = particles_predict;
         }
 

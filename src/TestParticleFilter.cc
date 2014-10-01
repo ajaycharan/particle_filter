@@ -37,13 +37,13 @@ int main (int argc, char *argv[]) {
     sim_config.log_path = "/home/ke/cplusplus_ws/particle_filter/data/log/robotdata1.log";
 
     // Particle filter configurations
-    sim_config.pf_config.max_particle_size = 25000;
+    sim_config.pf_config.max_particle_size = 30000;
     sim_config.pf_config.laser_x           = 25.0f;
     sim_config.pf_config.laser_y           = 0.0f;
     sim_config.pf_config.laser_theta       = 0.0f;
     sim_config.pf_config.laser_max_reading = 4000.0f;
-    sim_config.pf_config.rot1_stddev       = 0.2f;
-    sim_config.pf_config.rot2_stddev       = 0.2f;
+    sim_config.pf_config.rot1_stddev       = 0.1f;
+    sim_config.pf_config.rot2_stddev       = 0.1f;
     sim_config.pf_config.trans_stddev      = 20.0f;
     sim_config.pf_config.alpha1            = 1.0f;
     sim_config.pf_config.alpha2            = 0.0f;
@@ -69,7 +69,7 @@ int main (int argc, char *argv[]) {
 
         if (data_flag == 2) {
             imshow("Particle Filter", pf_sim.wean_drawing_copy);
-            waitKey(20);
+            waitKey(5);
         }
     }
     printf("\n");

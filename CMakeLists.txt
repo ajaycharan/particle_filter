@@ -6,9 +6,14 @@ find_package(OpenCV REQUIRED)
 
 
 # Need both the following for debugging with ddd
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -gdwarf-2 -ggdb")
-set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 ${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2  -ggdb")
-set(CMAKE_CXX_FLAGS_RELEASE "-std=c++11 ${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2 -ggdb")
+set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -gdwarf-2 -ggdb")
+#set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 ${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2  -ggdb")
+#set(CMAKE_CXX_FLAGS_RELEASE "-std=c++11 ${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2 -ggdb")
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 ${CMAKE_CXX_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_RELEASE "-std=c++11 ${CMAKE_CXX_FLAGS_RELEASE}")
+message(${CMAKE_CXX_FLAGS_RELEASE})
 
 include_directories(
   include
