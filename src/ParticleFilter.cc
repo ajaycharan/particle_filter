@@ -79,6 +79,7 @@ namespace lab1 {
         z_random    = pf_config.z_random;
 
         first_odom_data = true;
+        resample_cntr = 0;
 
         // TODO: Initialize other parameters of the filter
 
@@ -287,8 +288,10 @@ namespace lab1 {
             particles_predict[i].y = y;
             if (trial_cntr < 20){
                 particles_predict[i].theta = particles_old[i].theta + rot1_noisy + rot2_noisy;
+                particles_predict[i].w = particles_old[i].w;
             } else {
                 particles_predict[i].theta = randu_theta(generator);
+                particles_predict[i].w = 0.0f;
             }
         }
 
@@ -334,10 +337,12 @@ namespace lab1 {
             float pt = particles_predict[particle_index].theta;
             float cospt = cos(pt);
             float sinpt = sin(pt);
+
+            // Clear the history weight of the particle
             particles_predict[particle_index].w = 0.0f;
 
             // Update the weight using the readings from the laser
-            for (unsigned int beam_index = 9; beam_index < ldata.size(); beam_index+=18) {
+            for (unsigned int beam_index = 4; beam_index < ldata.size(); beam_index+=9) {
 
                 if (ldata[beam_index] < laser_max_reading){
 
@@ -398,7 +403,7 @@ namespace lab1 {
 
                     // Compute the probability of the current beam
                     double norm_dist = sqrt(dist_obstacle_laser) / dist_stddev;
-                    double prob_dist = (double)z_hit*(normal_cdf(norm_dist+0.1f)-normal_cdf(norm_dist-0.1f)) + (double)(z_random/laser_max_reading);
+                    double prob_dist = (double)z_hit*(normal_cdf(norm_dist+0.2f)-normal_cdf(norm_dist-0.2f)) + (double)(z_random/laser_max_reading);
                     particles_predict[particle_index].w += prob_dist;
 
                 }
@@ -454,6 +459,7 @@ namespace lab1 {
             // Add the sample to represent the belief after resampling
             if (particle_to_sample >= particle_size) break;
             particles_update.push_back(particles_predict[particle_to_sample]);
+            particles_update[i].w = 0.0f;
 
         }
 
@@ -511,10 +517,21 @@ namespace lab1 {
         // A full pipeline of the particle is implemented
         bool if_resample = motionModel(laser_data.odom_robot);
         if (if_resample) {
+
             measurementModel(laser_data.readings);
-            lowVarResample();
-            particles_old.clear();
-            particles_old = particles_update;
+            ++resample_cntr;
+
+            // Perform resampling at a low frequency
+            if (resample_cntr >= 0) {
+                lowVarResample();
+                resample_cntr = 0;
+                particles_old.clear();
+                particles_old = particles_update;
+            } else {
+                particles_old.clear();
+                particles_old = particles_predict;
+            }
+
         } else {
             particles_old.clear();
             particles_old = particles_predict;

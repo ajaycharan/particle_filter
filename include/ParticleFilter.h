@@ -154,6 +154,9 @@ namespace lab1 {
         OdometryData prev_odom_data;
         bool first_odom_data;
 
+        // Indicate if resampling process should be performed
+        int resample_cntr;
+
         // Compute the cdf of normal distribution
         double normal_cdf(double d);
         // Categorize the map
