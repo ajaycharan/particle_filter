@@ -79,8 +79,7 @@ namespace lab1 {
         z_random    = pf_config.z_random;
 
         first_odom_data = true;
-        resample_cntr = 0;
-
+        new_particles_num = 0;
         // TODO: Initialize other parameters of the filter
 
         return;
@@ -123,7 +122,7 @@ namespace lab1 {
      * @param
      * @return
      **************************************************************/
-    void ParticleFilter::generateInitParticles() {
+    void ParticleFilter::generateParticles(int particle_num) {
 
         // Create particles that uniformly distributed in the map
         unsigned int rand_seed = chrono::system_clock::now().time_since_epoch().count();
@@ -132,7 +131,9 @@ namespace lab1 {
         uniform_real_distribution<float> randu_y(0.0f, wean.map_size_y-1);
         uniform_real_distribution<float> randu_theta(-PI, PI);
 
-        for (int i = 0; i < max_particle_size; ++i) {
+        particle_num = particle_num > 0 ? particle_num : max_particle_size;
+
+        for (int i = 0; i < particle_num; ++i) {
             // Add a new particle
             particles_old.push_back(Particle());
 
@@ -435,9 +436,34 @@ namespace lab1 {
 
         particles_update.clear();
 
-        unsigned int particle_size = particles_predict.size();
+        // 500 Quota are saved for random particles
+        unsigned int particle_size = particles_predict.size()-500;
         double step_size = 1.0f / (double)particle_size;
+        new_particles_num = 500;
 
+        // Find the maximum weight
+        float max_weight = -1.0f;
+        float var_weight = 0.0f;
+        for (unsigned int i = 0; i < particles_predict.size(); ++i) {
+            max_weight = max_weight >= particles_predict[i].w ? max_weight : particles_predict[i].w;
+            var_weight += particles_predict[i].w * particles_predict[i].w;
+        }
+
+        float mean_weight = 1.0f / (float)(particles_predict.size());
+        var_weight = sqrt(var_weight/(float)(particles_predict.size()) - mean_weight*mean_weight);
+
+        // Change the size of the particle pool
+        /*
+        if (max_weight > 2.0f*step_size) {
+            if (particle_size > 5000) {
+                particle_size = particle_size-1000 > 5000 ? particle_size-1000 : 5000;
+            }
+        } else if (max_weight < 1.5f*step_size) {
+            if (particle_size < max_particle_size -500) {
+                new_particles_num = particle_size+1000 > max_particle_size-500 ? 500 : 1000;
+            }
+        }
+        */
         // Generate a random number as the starting point
         unsigned int rand_seed = chrono::system_clock::now().time_since_epoch().count();
         default_random_engine generator(rand_seed);
@@ -459,10 +485,11 @@ namespace lab1 {
             // Add the sample to represent the belief after resampling
             if (particle_to_sample >= particle_size) break;
             particles_update.push_back(particles_predict[particle_to_sample]);
-            particles_update[i].w = 0.0f;
 
         }
-
+        cout << "Var of weights: " << var_weight << endl;
+        //cout << "Required update size: " << particle_size + 500 << endl;
+        //cout << "Particles update size: " << particles_update.size() + 500 << endl;
         return;
     }
 
@@ -519,18 +546,10 @@ namespace lab1 {
         if (if_resample) {
 
             measurementModel(laser_data.readings);
-            ++resample_cntr;
-
-            // Perform resampling at a low frequency
-            if (resample_cntr >= 0) {
-                lowVarResample();
-                resample_cntr = 0;
-                particles_old.clear();
-                particles_old = particles_update;
-            } else {
-                particles_old.clear();
-                particles_old = particles_predict;
-            }
+            lowVarResample();
+            particles_old.clear();
+            particles_old = particles_update;
+            generateParticles(new_particles_num);
 
         } else {
             particles_old.clear();

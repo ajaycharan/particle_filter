@@ -112,7 +112,7 @@ namespace lab1 {
         void setMap(WorldMap& new_map);
 
         // Generate initial particles
-        void generateInitParticles();
+        void generateParticles(int particle_num);
 
         // Interface of the particle filter
         // Note that the interface is overloaded to handle the case where only
@@ -154,8 +154,8 @@ namespace lab1 {
         OdometryData prev_odom_data;
         bool first_odom_data;
 
-        // Indicate if resampling process should be performed
-        int resample_cntr;
+        // Number of new random particles to be added
+        int new_particles_num;
 
         // Compute the cdf of normal distribution
         double normal_cdf(double d);

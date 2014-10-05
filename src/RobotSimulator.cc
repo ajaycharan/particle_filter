@@ -29,7 +29,7 @@ namespace lab1 {
 
         // Some other settings of the particle filter
         pf_estimator.setMap(wean);
-        pf_estimator.generateInitParticles();
+        pf_estimator.generateParticles(-1);
 
         //wean.env_map.copyTo(wean_visual);
         pf_estimator.wean.env_map.copyTo(wean_visual);
@@ -104,9 +104,14 @@ namespace lab1 {
             // Draw the laser measurement for a single particle
             wean_visual.copyTo(wean_drawing_copy);
             drawParticles("loc");
-            if (pf_estimator.particles_old.size() > 0) {
-                unsigned int lucky_pt = pf_estimator.particles_old.size()/2;
-                drawLaserBeam(pf_estimator.particles_old[lucky_pt], laser_data[next_laser_data-1]);
+            if (pf_estimator.particles_update.size() > 0) {
+
+                unsigned int lucky_pt = 0;
+                for (unsigned int i = 1; i <pf_estimator.particles_update.size(); ++i) {
+                    lucky_pt = pf_estimator.particles_update[i].w > pf_estimator.particles_update[lucky_pt].w ? i : lucky_pt;
+                }
+
+                drawLaserBeam(pf_estimator.particles_update[lucky_pt], laser_data[next_laser_data-1]);
             }
 #endif
 
@@ -132,7 +137,7 @@ namespace lab1 {
 
         // For all particle, compute their locations and orientations
         // in the image
-        vector<Particle>& particles = pf_estimator.particles_old;
+        vector<Particle>& particles = pf_estimator.particles_update;
         vector<Point> p_loc(particles.size());
         vector<Point> p_dir(particles.size());
 

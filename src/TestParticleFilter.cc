@@ -63,7 +63,7 @@ int main (int argc, char *argv[]) {
     while (data_flag) {
         // Forward the simulation by one step
         data_flag = pf_sim.oneStepForward();
-        printf("Sim time: %.4f\n", pf_sim.sim_time);
+        printf("Sim time: %.4f \t particle size: %d\n", pf_sim.sim_time, (int)(pf_sim.pf_estimator.particles_old.size()));
 
         // Show the particles and beams
 
